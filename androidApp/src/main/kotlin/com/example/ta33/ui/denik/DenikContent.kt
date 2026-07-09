@@ -1,14 +1,11 @@
 package com.example.ta33.ui.denik
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -24,7 +21,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.example.ta33.domain.model.ControlPoint
 import com.example.ta33.domain.model.ControlPointState
 import com.example.ta33.domain.model.GeoPoint
@@ -50,6 +46,7 @@ import com.example.ta33.ui.components.Overline
 import com.example.ta33.ui.components.PaperCard
 import com.example.ta33.ui.components.PrimaryButton
 import com.example.ta33.ui.components.Ta33Icons
+import com.example.ta33.ui.components.Ta33ProgressBar
 import com.example.ta33.ui.format.formatClock
 import com.example.ta33.ui.theme.Ta33Theme
 import org.jetbrains.compose.resources.StringResource
@@ -227,21 +224,8 @@ private fun ProgressCard(routeLabel: String, collected: Int, total: Int) {
 
 @Composable
 private fun ProgressBar(collected: Int, total: Int) {
-    val fraction = if (total == 0) 0f else (collected.toFloat() / total.toFloat()).coerceIn(0f, 1f)
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(10.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant,
-        shape = Ta33Theme.radius.pill,
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth(fraction)
-                .fillMaxHeight()
-                .background(MaterialTheme.colorScheme.primary, Ta33Theme.radius.pill),
-        )
-    }
+    val fraction = if (total == 0) 0f else collected.toFloat() / total.toFloat()
+    Ta33ProgressBar(fraction = fraction)
 }
 
 // ---- Previews ---------------------------------------------------------------

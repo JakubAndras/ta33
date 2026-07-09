@@ -19,9 +19,9 @@ import com.example.ta33.resources.denik_offline_banner
 import com.example.ta33.ui.theme.Ta33Theme
 import org.jetbrains.compose.resources.stringResource
 
-/** `warning-tint` banner s ⚡ ikonou: „Offline režim — záznamy se uloží lokálně". */
+/** `warning-tint` banner s ⚡ ikonou a libovolným textem (sdílený tvar upozornění). */
 @Composable
-fun OfflineBanner(modifier: Modifier = Modifier) {
+fun WarningBanner(text: String, modifier: Modifier = Modifier) {
     Surface(
         modifier = modifier.fillMaxWidth(),
         color = Ta33Theme.colors.warningTint,
@@ -42,13 +42,19 @@ fun OfflineBanner(modifier: Modifier = Modifier) {
                 modifier = Modifier.size(Ta33Theme.spacing.x5),
             )
             Text(
-                text = stringResource(Res.string.denik_offline_banner),
+                text = text,
                 style = MaterialTheme.typography.bodyMedium,
                 color = Ta33Theme.colors.fgDefault,
                 fontWeight = FontWeight.SemiBold,
             )
         }
     }
+}
+
+/** `warning-tint` banner: „Offline režim — záznamy se uloží lokálně". */
+@Composable
+fun OfflineBanner(modifier: Modifier = Modifier) {
+    WarningBanner(text = stringResource(Res.string.denik_offline_banner), modifier = modifier)
 }
 
 @Preview

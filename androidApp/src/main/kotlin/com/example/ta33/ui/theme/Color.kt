@@ -90,6 +90,7 @@ data class Ta33Colors(
     val kpFinishFg: Color,
     // Surfaces / map / sky
     val identityBg: Color, // tmavá "kdo a kdy" karta (date/place, startovní číslo)
+    val scanBg: Color,     // celoobrazovkové pozadí scan modalu (slate-900)
     val creamDeep: Color,
     val mapTile: Color,
     val mapGrid: Color,
@@ -123,6 +124,7 @@ internal val Ta33LightColors = Ta33Colors(
     kpFinishBg = Ta33Palette.Slate800,
     kpFinishFg = Ta33Palette.White,
     identityBg = Ta33Palette.Slate800,
+    scanBg = Ta33Palette.Slate900,
     creamDeep = Ta33Palette.CreamDeep,
     mapTile = Ta33Palette.MapTile,
     mapGrid = Ta33Palette.MapGrid,

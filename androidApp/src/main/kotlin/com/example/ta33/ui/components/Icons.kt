@@ -130,6 +130,13 @@ object Ta33Icons {
         lineTo(15f, 12f)
         lineTo(9f, 18f)
     }
+
+    val Close: ImageVector = strokeIcon("x") {
+        moveTo(6f, 6f)
+        lineTo(18f, 18f)
+        moveTo(18f, 6f)
+        lineTo(6f, 18f)
+    }
 }
 
 private fun strokeIcon(name: String, pathData: PathBuilder.() -> Unit): ImageVector =

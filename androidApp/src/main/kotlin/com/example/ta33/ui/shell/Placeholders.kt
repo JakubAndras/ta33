@@ -69,18 +69,6 @@ fun StubScreen(title: String, modifier: Modifier = Modifier) {
     }
 }
 
-/** Stub gate pro NOT_READY / PREPARING (FR-11 obrazovka přijde později). */
-@Composable
-fun PreparationPlaceholder(modifier: Modifier = Modifier) {
-    CenteredScreen(modifier) {
-        Text(
-            text = "Příprava dat akce",
-            style = MaterialTheme.typography.titleLarge,
-            color = Ta33Theme.colors.fgStrong,
-        )
-    }
-}
-
 @Preview
 @Composable
 private fun SplashViewPreview() {
@@ -91,10 +79,4 @@ private fun SplashViewPreview() {
 @Composable
 private fun StubScreenPreview() {
     Ta33Theme { StubScreen(title = "Mapa") }
-}
-
-@Preview
-@Composable
-private fun PreparationPlaceholderPreview() {
-    Ta33Theme { PreparationPlaceholder() }
 }
