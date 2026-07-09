@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import com.example.ta33.presentation.navigation.AppUiState
 import com.example.ta33.presentation.navigation.TopLevelDestination
 import com.example.ta33.ui.denik.DenikScreen
+import com.example.ta33.ui.prehled.PrehledScreen
 import com.example.ta33.ui.theme.Ta33Theme
 
 /**
@@ -51,7 +52,7 @@ fun MainShell(
                 when (tab) {
                     TopLevelDestination.DENIK -> DenikScreen(onDownload = onDownload)
                     TopLevelDestination.MAPA -> StubScreen(title = "Mapa")
-                    TopLevelDestination.PREHLED -> StubScreen(title = "Přehled")
+                    TopLevelDestination.PREHLED -> PrehledScreen()
                 }
             }
             Ta33BottomNav(

@@ -15,6 +15,7 @@ import com.example.ta33.presentation.RouteDetailUiState
 import com.example.ta33.presentation.RouteDetailViewModel
 import com.example.ta33.presentation.RunLogViewModel
 import com.example.ta33.presentation.navigation.AppReadiness
+import com.example.ta33.ui.format.formatKm
 import org.koin.compose.viewmodel.koinViewModel
 
 /**
@@ -64,7 +65,5 @@ private fun DenikOnRouteRoute(runId: String, routeId: String) {
 /** Složí label „<jméno> · <km> km" z RouteDetail; dokud detail nedorazí, vrátí placeholder. */
 private fun routeLabelOf(state: RouteDetailUiState): String {
     val detail = state.detail ?: return "Trasa"
-    val km = detail.distanceKm
-    val kmStr = if (km % 1.0 == 0.0) km.toInt().toString() else km.toString().replace('.', ',')
-    return "${detail.name} · $kmStr km"
+    return "${detail.name} · ${formatKm(detail.distanceKm)} km"
 }

@@ -124,6 +124,12 @@ object Ta33Icons {
         lineTo(4f, 20f)
         lineTo(4f, 16f)
     }
+
+    val ChevronRight: ImageVector = strokeIcon("chevron-right") {
+        moveTo(9f, 6f)
+        lineTo(15f, 12f)
+        lineTo(9f, 18f)
+    }
 }
 
 private fun strokeIcon(name: String, pathData: PathBuilder.() -> Unit): ImageVector =

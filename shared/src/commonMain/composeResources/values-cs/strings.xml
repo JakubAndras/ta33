@@ -13,4 +13,17 @@
     <string name="denik_status_next">Další</string>
     <string name="denik_status_done_prefix">Splněno</string>
     <string name="denik_finish_title">Cíl</string>
+    <string name="prehled_section_event">Tvoje akce</string>
+    <string name="prehled_active_route">Aktivní trasa</string>
+    <string name="prehled_scanned">Naskenováno</string>
+    <string name="prehled_event_data">Data akce</string>
+    <string name="prehled_no_event">Zatím žádná aktivní akce</string>
+    <string name="prehled_section_settings">Nastavení</string>
+    <string name="settings_notifications">Notifikace</string>
+    <string name="settings_contact_organizer">Kontaktovat pořadatele</string>
+    <string name="settings_faq">Časté dotazy</string>
+    <string name="pkg_not_started">Nestaženo</string>
+    <string name="pkg_preparing">Stahuje se</string>
+    <string name="pkg_ready">Staženo</string>
+    <string name="pkg_error">Chyba stahování</string>
 </resources>
