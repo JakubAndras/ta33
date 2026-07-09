@@ -22,6 +22,7 @@ napier = "2.7.1"
 skie = "0.10.13"
 turbine = "1.2.0"
 playServicesLocation = "21.3.0"
+desugarJdkLibs = "2.1.5"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -58,6 +59,7 @@ koin-composeViewmodel = { module = "io.insert-koin:koin-compose-viewmodel", vers
 napier = { module = "io.github.aakira:napier", version.ref = "napier" }
 androidx-lifecycle-viewmodel = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel", version.ref = "androidx-lifecycle" }
 play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "playServicesLocation" }
+desugar-jdk-libs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugarJdkLibs" }
 # Test-only (commonTest)
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
 ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }

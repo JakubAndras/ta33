@@ -1,3 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="denik_event_date">Sobota 19. 9. 2026</string>
+    <string name="denik_event_place">Teplice n. Metují</string>
+    <string name="denik_event_sub">Start 7:00–10:00 · prezentace u sokolovny</string>
+    <string name="denik_not_downloaded_title">Akce ještě není stažená</string>
+    <string name="denik_not_downloaded_body">Stáhni si trasy, kontroly a mapu, dokud máš signál. Na trase pak vše funguje offline.</string>
+    <string name="denik_download_cta">Stáhnout data akce · 84 MB</string>
+    <string name="denik_offline_banner">Offline režim — záznamy se uloží lokálně</string>
+    <string name="denik_group_next">Příští checkpoint</string>
+    <string name="denik_group_done">Hotovo</string>
+    <string name="denik_status_locked">Zamčeno</string>
+    <string name="denik_status_next">Další</string>
+    <string name="denik_status_done_prefix">Splněno</string>
+    <string name="denik_finish_title">Cíl</string>
 </resources>
