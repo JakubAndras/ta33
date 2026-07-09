@@ -21,8 +21,4 @@ final class RootModel: ObservableObject {
             app = state
         }
     }
-
-    func onScan() {
-        // TODO: FR-09 scan flow (start/cíl QR) — vstupní bod hoisted z shellu.
-    }
 }
