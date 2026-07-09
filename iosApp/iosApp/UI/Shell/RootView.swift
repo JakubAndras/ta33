@@ -24,7 +24,7 @@ struct RootView: View {
                     StubView(title: "Mapa")
                         .tabItem { Label("Mapa", systemImage: "map") }
                         .tag(TopLevelDestination.mapa)
-                    StubView(title: "Přehled")
+                    PrehledView()
                         .tabItem { Label("Přehled", systemImage: "person") }
                         .tag(TopLevelDestination.prehled)
                 }
