@@ -1,0 +1,1 @@
+/Users/jakubandras/ai-toolkit/claude-code/commands/docs-feature-detection.md

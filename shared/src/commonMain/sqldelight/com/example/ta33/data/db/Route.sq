@@ -1,0 +1,21 @@
+CREATE TABLE Route (
+    id TEXT NOT NULL PRIMARY KEY,
+    name TEXT NOT NULL,
+    distanceKm REAL NOT NULL
+);
+
+selectAllRoutes:
+SELECT * FROM Route ORDER BY name;
+
+selectRouteById:
+SELECT * FROM Route WHERE id = ?;
+
+selectRouteSummaries:
+SELECT Route.id, Route.name, Route.distanceKm, COUNT(ControlPoint.id) AS controlCount
+FROM Route
+LEFT JOIN ControlPoint ON ControlPoint.routeId = Route.id
+GROUP BY Route.id, Route.name, Route.distanceKm
+ORDER BY Route.name;
+
+upsertRoute:
+INSERT OR REPLACE INTO Route(id, name, distanceKm) VALUES (?, ?, ?);

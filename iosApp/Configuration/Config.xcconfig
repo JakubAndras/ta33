@@ -1,0 +1,10 @@
+TEAM_ID=
+
+PRODUCT_NAME=TA33
+PRODUCT_BUNDLE_IDENTIFIER=com.example.ta33.TA33$(TEAM_ID)
+
+CURRENT_PROJECT_VERSION=1
+MARKETING_VERSION=1.0
+
+// Required by the SQLDelight native driver (SQLiter) linked from the static Shared framework.
+OTHER_LDFLAGS = $(inherited) -lsqlite3

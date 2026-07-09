@@ -1,0 +1,22 @@
+CREATE TABLE DownloadedAsset (
+    itemId TEXT NOT NULL PRIMARY KEY,   -- "content" | "tiles:<id>"
+    relativePath TEXT,                  -- null for the non-file content item
+    status TEXT NOT NULL DEFAULT 'IDLE',
+    bytesDownloaded INTEGER NOT NULL DEFAULT 0,
+    totalBytes INTEGER,
+    sha256 TEXT,
+    updatedAtMillis INTEGER NOT NULL
+);
+
+selectAllAssets:
+SELECT * FROM DownloadedAsset;
+
+selectAsset:
+SELECT * FROM DownloadedAsset WHERE itemId = ?;
+
+upsertAsset:
+INSERT OR REPLACE INTO DownloadedAsset(itemId, relativePath, status, bytesDownloaded, totalBytes, sha256, updatedAtMillis)
+VALUES (?, ?, ?, ?, ?, ?, ?);
+
+deleteAllAssets:
+DELETE FROM DownloadedAsset;

@@ -1,0 +1,15 @@
+CREATE TABLE Participant (
+    id TEXT NOT NULL PRIMARY KEY,
+    displayName TEXT,
+    createdAtMillis INTEGER NOT NULL,
+    syncStatus TEXT NOT NULL DEFAULT 'PENDING'
+);
+
+selectAnyParticipant:
+SELECT * FROM Participant LIMIT 1;
+
+selectParticipantById:
+SELECT * FROM Participant WHERE id = ?;
+
+insertParticipant:
+INSERT INTO Participant(id, displayName, createdAtMillis, syncStatus) VALUES (?, ?, ?, ?);

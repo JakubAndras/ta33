@@ -1,0 +1,19 @@
+CREATE TABLE CollectedControl (
+    id TEXT NOT NULL PRIMARY KEY,
+    runSessionId TEXT NOT NULL,
+    controlId TEXT NOT NULL,
+    collectedAtMillis INTEGER NOT NULL,
+    syncStatus TEXT NOT NULL DEFAULT 'PENDING'
+);
+
+CREATE UNIQUE INDEX collectedcontrol_unique ON CollectedControl(runSessionId, controlId);
+
+selectForRun:
+SELECT * FROM CollectedControl WHERE runSessionId = ? ORDER BY collectedAtMillis;
+
+countForRun:
+SELECT COUNT(*) FROM CollectedControl WHERE runSessionId = ?;
+
+insertCollected:
+INSERT OR IGNORE INTO CollectedControl(id, runSessionId, controlId, collectedAtMillis, syncStatus)
+VALUES (?, ?, ?, ?, ?);

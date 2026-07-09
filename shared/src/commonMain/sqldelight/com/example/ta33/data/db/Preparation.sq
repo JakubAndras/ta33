@@ -1,0 +1,14 @@
+CREATE TABLE Preparation (
+    id INTEGER NOT NULL PRIMARY KEY DEFAULT 1,
+    status TEXT NOT NULL DEFAULT 'NOT_STARTED',
+    manifestVersion INTEGER,
+    readyAtMillis INTEGER
+);
+
+INSERT OR IGNORE INTO Preparation(id, status) VALUES (1, 'NOT_STARTED');
+
+selectPreparation:
+SELECT * FROM Preparation WHERE id = 1;
+
+upsertPreparation:
+INSERT OR REPLACE INTO Preparation(id, status, manifestVersion, readyAtMillis) VALUES (1, ?, ?, ?);

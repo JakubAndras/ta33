@@ -1,0 +1,16 @@
+CREATE TABLE AppPreferences (
+    id INTEGER NOT NULL PRIMARY KEY DEFAULT 1,
+    selectedRouteId TEXT,
+    notificationsEnabled INTEGER NOT NULL DEFAULT 1
+);
+
+INSERT OR IGNORE INTO AppPreferences(id, selectedRouteId, notificationsEnabled) VALUES (1, NULL, 1);
+
+selectPreferences:
+SELECT * FROM AppPreferences WHERE id = 1;
+
+setSelectedRouteId:
+UPDATE AppPreferences SET selectedRouteId = ? WHERE id = 1;
+
+setNotificationsEnabled:
+UPDATE AppPreferences SET notificationsEnabled = ? WHERE id = 1;

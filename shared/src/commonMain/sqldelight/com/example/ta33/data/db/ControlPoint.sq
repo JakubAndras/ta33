@@ -1,0 +1,21 @@
+CREATE TABLE ControlPoint (
+    id TEXT NOT NULL PRIMARY KEY,
+    routeId TEXT NOT NULL,
+    ordinal INTEGER NOT NULL,
+    name TEXT NOT NULL,
+    latitude REAL NOT NULL,
+    longitude REAL NOT NULL,
+    radiusMeters REAL NOT NULL DEFAULT 50.0
+);
+
+CREATE INDEX controlpoint_route ON ControlPoint(routeId);
+
+selectControlsForRoute:
+SELECT * FROM ControlPoint WHERE routeId = ? ORDER BY ordinal;
+
+selectControlById:
+SELECT * FROM ControlPoint WHERE id = ?;
+
+upsertControl:
+INSERT OR REPLACE INTO ControlPoint(id, routeId, ordinal, name, latitude, longitude, radiusMeters)
+VALUES (?, ?, ?, ?, ?, ?, ?);

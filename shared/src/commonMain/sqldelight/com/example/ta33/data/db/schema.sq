@@ -1,0 +1,3 @@
+-- Schema tables live in their own .sq files:
+-- Route.sq, ControlPoint.sq, Participant.sq, RunSession.sq, CollectedControl.sq
+-- The demo Checkpoint table was retired in FR-02 (unused scaffold).

@@ -1,0 +1,27 @@
+-- Trackpoint.sq  — ADDITIVE over FR-02 (one row per kept breadcrumb point).
+CREATE TABLE Trackpoint (
+    id TEXT NOT NULL PRIMARY KEY,
+    runSessionId TEXT NOT NULL,        -- FK-style link to FR-02 RunSession.id
+    latitude REAL NOT NULL,
+    longitude REAL NOT NULL,
+    accuracyMeters REAL NOT NULL,
+    timestampMillis INTEGER NOT NULL,
+    syncStatus TEXT NOT NULL DEFAULT 'PENDING'
+);
+CREATE INDEX trackpoint_run ON Trackpoint(runSessionId);
+
+selectTrackForRun:
+SELECT * FROM Trackpoint WHERE runSessionId = ? ORDER BY timestampMillis;
+
+selectLastTrackpoint:
+SELECT * FROM Trackpoint WHERE runSessionId = ? ORDER BY timestampMillis DESC LIMIT 1;
+
+countForRun:
+SELECT COUNT(*) FROM Trackpoint WHERE runSessionId = ?;
+
+insertTrackpoint:
+INSERT INTO Trackpoint(id, runSessionId, latitude, longitude, accuracyMeters, timestampMillis, syncStatus)
+VALUES (?, ?, ?, ?, ?, ?, ?);
+
+deleteForRun:
+DELETE FROM Trackpoint WHERE runSessionId = ?;

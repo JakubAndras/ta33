@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CADisableMinimumFrameDurationOnPhone</key>
+	<true/>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>TA33 uses your location to show your position on the trail map and record the track you walk.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>TA33 records your track in the background during a multi-hour run so it survives with the screen off.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
+	</array>
+</dict>
+</plist>

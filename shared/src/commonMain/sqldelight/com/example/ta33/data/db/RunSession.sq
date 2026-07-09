@@ -1,0 +1,24 @@
+CREATE TABLE RunSession (
+    id TEXT NOT NULL PRIMARY KEY,
+    routeId TEXT NOT NULL,
+    participantId TEXT NOT NULL,
+    startedAtMillis INTEGER,
+    finishedAtMillis INTEGER,
+    syncStatus TEXT NOT NULL DEFAULT 'PENDING'
+);
+
+selectRunById:
+SELECT * FROM RunSession WHERE id = ?;
+
+selectActiveRun:
+SELECT * FROM RunSession WHERE finishedAtMillis IS NULL ORDER BY startedAtMillis DESC LIMIT 1;
+
+insertRun:
+INSERT INTO RunSession(id, routeId, participantId, startedAtMillis, finishedAtMillis, syncStatus)
+VALUES (?, ?, ?, ?, ?, ?);
+
+setStarted:
+UPDATE RunSession SET startedAtMillis = ? WHERE id = ?;
+
+setFinished:
+UPDATE RunSession SET finishedAtMillis = ? WHERE id = ?;
