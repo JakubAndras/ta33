@@ -3,6 +3,7 @@ package com.example.ta33.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.ta33.data.connectivity.ConnectivityMonitor
+import com.example.ta33.domain.download.DownloadStatus
 import com.example.ta33.domain.download.OfflinePackageProgress
 import com.example.ta33.domain.model.NetworkPreference
 import com.example.ta33.domain.model.NetworkType
@@ -68,6 +69,16 @@ class DownloadViewModel(
     fun pause() {
         job?.cancel()
         job = null
+        // A cancelled download flow stops emitting, so without this the UI would stay stuck on
+        // DOWNLOADING after a manual/auto pause. Only downgrade an in-flight download — never
+        // clobber a terminal DONE/ERROR or an IDLE/PAUSED state.
+        _state.update {
+            if (it.progress.overallStatus == DownloadStatus.DOWNLOADING) {
+                it.copy(progress = it.progress.copy(overallStatus = DownloadStatus.PAUSED))
+            } else {
+                it
+            }
+        }
     }
 
     private fun launchDownload() {

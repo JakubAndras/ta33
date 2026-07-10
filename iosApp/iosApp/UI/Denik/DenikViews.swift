@@ -60,11 +60,11 @@ struct DenikOnRouteView: View {
     let offline: Bool
 
     private var nextEntries: [RunLogEntry] {
-        log.entries.filter { $0.state != .done }
+        log.entries.filter { $0.state != .done && $0.state != .finish }
     }
 
     private var doneEntries: [RunLogEntry] {
-        log.entries.filter { $0.state == .done }
+        log.entries.filter { $0.state == .done || $0.state == .finish }
     }
 
     private var finishOrdinal: Int32? {

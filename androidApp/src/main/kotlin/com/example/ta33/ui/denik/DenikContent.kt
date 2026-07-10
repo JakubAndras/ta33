@@ -133,7 +133,9 @@ fun DenikOnRoute(
     modifier: Modifier = Modifier,
 ) {
     val (done, next) = remember(log.entries) {
-        log.entries.partition { it.state == ControlPointState.DONE }
+        log.entries.partition {
+            it.state == ControlPointState.DONE || it.state == ControlPointState.FINISH
+        }
     }
     val finishOrdinal = remember(log.entries) { log.entries.maxOfOrNull { it.control.ordinal } }
 
