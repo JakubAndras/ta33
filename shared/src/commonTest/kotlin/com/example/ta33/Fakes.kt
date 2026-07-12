@@ -110,6 +110,18 @@ class FakeRunRepository(private val ids: IdGenerator = SeqIdGenerator("run-")) :
 }
 
 /** Deterministic tick source: tests drive cadence via [tick] without any real delay. */
+class FakeNotifier : com.example.ta33.core.Notifier {
+    var count = 0
+        private set
+    var lastTitle: String? = null
+        private set
+
+    override fun notifyDownloadComplete(title: String, body: String) {
+        count++
+        lastTitle = title
+    }
+}
+
 class FakeTicker : Ticker {
     private val flow = MutableSharedFlow<Unit>(replay = 0, extraBufferCapacity = 64)
 

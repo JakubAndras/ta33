@@ -7,6 +7,7 @@ import com.example.ta33.data.repository.OfflinePackageRepositoryImpl
 import com.example.ta33.domain.download.DownloadStatus
 import com.example.ta33.domain.model.NetworkPreference
 import com.example.ta33.domain.model.NetworkType
+import com.example.ta33.domain.usecase.ObserveNotificationsEnabledUseCase
 import com.example.ta33.domain.usecase.ObservePreparationStateUseCase
 import com.example.ta33.domain.usecase.PrepareOfflinePackageUseCase
 import com.example.ta33.presentation.DownloadViewModel
@@ -69,7 +70,13 @@ class DownloadViewModelTest {
             FakeFileStorage(),
         )
         val prepare = PrepareOfflinePackageUseCase(offline, prepRepo, connectivity)
-        return DownloadViewModel(prepare, ObservePreparationStateUseCase(prepRepo), connectivity)
+        return DownloadViewModel(
+            prepare,
+            ObservePreparationStateUseCase(prepRepo),
+            connectivity,
+            FakeNotifier(),
+            ObserveNotificationsEnabledUseCase(FakeAppPreferencesRepository()),
+        )
     }
 
     @Test

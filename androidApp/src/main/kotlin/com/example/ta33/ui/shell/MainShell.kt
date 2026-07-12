@@ -1,5 +1,10 @@
 package com.example.ta33.ui.shell
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.WindowInsets
@@ -16,16 +21,23 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.ta33.domain.download.DownloadStatus
 import com.example.ta33.domain.model.CollectionCandidate
+import com.example.ta33.domain.model.NetworkPreference
 import com.example.ta33.domain.model.QrTimingConfig
 import com.example.ta33.presentation.ControlCollectionViewModel
 import com.example.ta33.presentation.CollectionOutcome
+import com.example.ta33.presentation.DownloadViewModel
 import com.example.ta33.presentation.TimingViewModel
+import com.example.ta33.presentation.navigation.AppReadiness
 import com.example.ta33.presentation.navigation.AppUiState
 import com.example.ta33.presentation.navigation.TopLevelDestination
 import com.example.ta33.ui.denik.DenikScreen
 import com.example.ta33.ui.map.MapaScreen
+import com.example.ta33.ui.preparation.PreparationContent
 import com.example.ta33.ui.profil.ProfilScreen
 import com.example.ta33.ui.scan.CollectionOfferSheet
 import com.example.ta33.ui.scan.ScanModal
@@ -53,16 +65,37 @@ fun MainShell(
     var showScan by rememberSaveable { mutableStateOf(false) }
     val runId = app.activeRunId
     val routeId = app.activeRouteId
+    // Data akce/mapa stažená → plný obsah + tab Mapa; jinak Deník ukazuje download kartu, Mapa skrytá.
+    val ready = app.readiness == AppReadiness.READY
+    // Jedna sdílená download VM vlastněná shellem → stažení přežije přepnutí tabu (Deník↔Profil).
+    val downloadVm: DownloadViewModel = koinViewModel()
+    val download by downloadVm.state.collectAsStateWithLifecycle()
     // Když aktivní běh skončí, zavři případný otevřený scan modal (jinak by se sám znovu
     // otevřel při dalším běhu, protože `showScan` přežije rememberSaveable).
     LaunchedEffect(runId) { if (runId == null) showScan = false }
+    // Když se Mapa schová (not-ready) a byla aktivní, přepni zpět na Deník (jinak neexistující tab).
+    LaunchedEffect(ready) { if (!ready && tab == TopLevelDestination.MAPA) tab = TopLevelDestination.DENIK }
+    // FR-11b: požádej o notifikační oprávnění (Android 13+) při prvním rozběhu stahování.
+    val notifContext = LocalContext.current
+    val notifPermLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { /* výsledek neblokuje stahování; notifikace se pošle jen když je uděleno */ }
+    LaunchedEffect(download.progress.overallStatus) {
+        if (download.progress.overallStatus == DownloadStatus.DOWNLOADING &&
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(notifContext, Manifest.permission.POST_NOTIFICATIONS) !=
+            PackageManager.PERMISSION_GRANTED
+        ) {
+            notifPermLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
     Box(modifier = modifier.fillMaxSize()) {
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             containerColor = MaterialTheme.colorScheme.background,
             contentWindowInsets = WindowInsets(0, 0, 0, 0),
             bottomBar = {
-                Ta33BottomNav(selected = tab, onSelect = { tab = it })
+                Ta33BottomNav(selected = tab, onSelect = { tab = it }, showMapa = ready)
             },
             floatingActionButton = {
                 if (runId != null) {
@@ -72,8 +105,24 @@ fun MainShell(
         ) { innerPadding ->
             Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
                 when (tab) {
-                    TopLevelDestination.DENIK -> DenikScreen()
-                    TopLevelDestination.MAPA -> MapaScreen()
+                    TopLevelDestination.DENIK ->
+                        if (ready) {
+                            DenikScreen()
+                        } else {
+                            PreparationContent(
+                                state = download,
+                                onStart = downloadVm::start,
+                                onPause = downloadVm::pause,
+                                onResume = downloadVm::resume,
+                                onRetry = downloadVm::retry,
+                                onToggleWifiOnly = { wifiOnly ->
+                                    downloadVm.setNetworkPreference(
+                                        if (wifiOnly) NetworkPreference.WIFI_ONLY else NetworkPreference.WIFI_AND_CELLULAR,
+                                    )
+                                },
+                            )
+                        }
+                    TopLevelDestination.MAPA -> MapaScreen()   // dosažitelné jen v ready
                     TopLevelDestination.PREHLED -> ProfilScreen()
                 }
             }

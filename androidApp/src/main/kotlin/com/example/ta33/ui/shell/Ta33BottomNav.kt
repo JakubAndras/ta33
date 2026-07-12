@@ -33,13 +33,17 @@ fun Ta33BottomNav(
     selected: TopLevelDestination,
     onSelect: (TopLevelDestination) -> Unit,
     modifier: Modifier = Modifier,
+    showMapa: Boolean = true,
 ) {
     NavigationBar(
         modifier = modifier,
         containerColor = MaterialTheme.colorScheme.surface,
     ) {
         NavItem(TopLevelDestination.DENIK, Ta33Icons.BookText, "Deník", selected, onSelect)
-        NavItem(TopLevelDestination.MAPA, Ta33Icons.Map, "Mapa", selected, onSelect)
+        // Mapa se v liště objeví až po stažení dat akce/mapy (readiness READY).
+        if (showMapa) {
+            NavItem(TopLevelDestination.MAPA, Ta33Icons.Map, "Mapa", selected, onSelect)
+        }
         NavItem(TopLevelDestination.PREHLED, Ta33Icons.User, "Profil", selected, onSelect)
     }
 }

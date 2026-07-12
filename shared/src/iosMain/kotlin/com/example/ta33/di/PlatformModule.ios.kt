@@ -2,7 +2,9 @@ package com.example.ta33.di
 
 import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.native.NativeSqliteDriver
+import com.example.ta33.core.IosNotifier
 import com.example.ta33.core.IosUrlOpener
+import com.example.ta33.core.Notifier
 import com.example.ta33.core.UrlOpener
 import com.example.ta33.data.connectivity.ConnectivityMonitor
 import com.example.ta33.data.connectivity.IosConnectivityMonitor
@@ -29,4 +31,5 @@ actual val platformModule: Module = module {
     single<LocationPermissionController> { IosLocationPermissionController() }
     single<LocationTrackingController> { IosLocationTrackingController() }
     single<UrlOpener> { IosUrlOpener() }
+    single<Notifier> { IosNotifier() }
 }

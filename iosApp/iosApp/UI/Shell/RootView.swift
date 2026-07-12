@@ -9,8 +9,9 @@ private enum TabSelection: Hashable {
     case scan
 }
 
-/// Kořenová navigační skořápka iOS aplikace. Gate na `AppUiState.readiness`:
-/// LOADING → splash, NOT_READY/PREPARING → příprava, READY → obsah s tab barem.
+/// Kořenová navigační skořápka iOS aplikace. LOADING → splash; jinak vždy shell s tab barem.
+/// Dokud data akce/mapa nejsou stažená (readiness != READY), tab Deník ukazuje `DownloadCardView`
+/// a tab Mapa je skrytý; po stažení (READY) se Mapa objeví a Deník/Mapa ukazují normální obsah.
 /// Tab bar je **nativní** `TabView` - na iOS 26 ho systém vykreslí jako Liquid Glass
 /// (morphing, interaktivní sklo, scroll-edge efekt zdarma, `.tabBarMinimizeBehavior` při scrollu),
 /// na iOS 18 jako klasickou lištu. Sdílíme jen navigační model (`TopLevelDestination`), vzhled
@@ -20,21 +21,22 @@ private enum TabSelection: Hashable {
 struct RootView: View {
     @StateObject private var model = RootModel()
     @StateObject private var scanFlow = ScanFlowModel()
+    @StateObject private var prep = PreparationModel() // sdílená download VM (vlastní shell)
     @State private var selection: TabSelection = .destination(RootView.initialTab())
     @State private var showScan = false
     @State private var dismissedControlId: String?
+
+    /// Data akce/mapa stažená → plný obsah + tab Mapa; jinak Deník ukazuje download kartu, Mapa je skrytá.
+    private var isReady: Bool { model.app.readiness == .ready }
 
     var body: some View {
         ZStack {
             switch model.app.readiness {
             case .loading:
                 SplashView()
-            case .notReady, .preparing:
-                PreparationView()
-            case .ready:
-                readyContent
             default:
-                SplashView()
+                // Po LOADING je shell vždy; not-ready řešíme uvnitř (Deník karta + skrytá Mapa).
+                readyContent
             }
         }
         .task { await model.observe() }
@@ -44,6 +46,13 @@ struct RootView: View {
 
     private var readyContent: some View {
         tabShell
+            .task { await prep.observe() }
+            .onChange(of: model.app.readiness, initial: true) { _, _ in
+                // Když se Mapa schová (not-ready) a byla aktivní, přepni zpět na Deník (jinak prázdný výběr).
+                if !isReady, selection == .destination(.mapa) {
+                    selection = .destination(.denik)
+                }
+            }
             .task(id: model.app.activeRunId) {
                 guard let runId = model.app.activeRunId,
                       let routeId = model.app.activeRouteId else { return }
@@ -76,16 +85,20 @@ struct RootView: View {
             .safeAreaInset(edge: .bottom) { collectionOffer }
     }
 
-    /// iOS 18 fallback: plovoucí scan FAB vedle klasické lišty - jen při aktivním běhu.
-    /// Na iOS 26 řeší scan oddělená search-role kapsle v `baseTabView`, tady se nevykreslí.
+    /// iOS 18 fallback: oranžový scan FAB plovoucí **nad** celošířkovou lištou (jako Android
+    /// Scaffold docked FAB) - jen při aktivním běhu. Na iOS 26 řeší scan oddělená search-role
+    /// kapsle v `baseTabView`, tady se nevykreslí. Zvednutý nad lištu, ať nepřekrývá tab „Profil".
     @ViewBuilder
     private var legacyScanFab: some View {
         if #unavailable(iOS 26.0), model.app.activeRunId != nil {
             ScanButton(action: { showScan = true })
-                .padding(.trailing, Ta33Spacing.x5) // ~21pt, FabBar horizontalPadding - okraj sladěný s lištou
-                .padding(.bottom, Ta33Spacing.x4)
+                .padding(.trailing, Ta33Spacing.x4)
+                .padding(.bottom, Self.legacyTabBarHeight + Ta33Spacing.x3)
         }
     }
+
+    /// Standardní výška obsahu iOS tab baru (pt) - o tolik zvedáme iOS 18 scan FAB nad lištu.
+    private static let legacyTabBarHeight: CGFloat = 49
 
     /// Vlastní obsah tabů. `TabView` si tři views drží naživu sám (scroll/stav se zachová
     /// mezi taby) - žádný ruční `ZStack`/opacity juggling. Na iOS 26 přibývá při aktivním běhu
@@ -95,10 +108,12 @@ struct RootView: View {
     private var baseTabView: some View {
         TabView(selection: $selection) {
             Tab("Deník", systemImage: "book", value: TabSelection.destination(.denik)) {
-                DenikView()
+                if isReady { DenikView() } else { DownloadCardView(model: prep) }
             }
-            Tab("Mapa", systemImage: "map", value: TabSelection.destination(.mapa)) {
-                MapaView()
+            if isReady {
+                Tab("Mapa", systemImage: "map", value: TabSelection.destination(.mapa)) {
+                    MapaView()
+                }
             }
             Tab("Profil", systemImage: "person", value: TabSelection.destination(.prehled)) {
                 ProfilView()

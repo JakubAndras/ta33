@@ -1,13 +1,16 @@
 import SwiftUI
 import Shared
+import UserNotifications
 
-/// „Příprava dat akce" (FR-11) nad sdíleným `DownloadViewModel` (přes `PreparationModel`).
-/// Gate obrazovka pro readiness `.notReady`/`.preparing`: identity karta + karta s výzvou /
-/// průběhem / pauzou / chybou podle `DownloadUiState`. Přechod po dokončení řeší `RootView`
-/// (readiness gate) - tady žádná explicitní navigace není. Zrcadlí Android `PreparationContent` (ui-07),
-/// ale nativně: `ProgressView(value:)` a `Toggle`.
-struct PreparationView: View {
-    @StateObject private var model = PreparationModel()
+/// Download karta „Příprava dat akce" (FR-11) nad sdíleným `DownloadViewModel` (přes `PreparationModel`).
+/// Zobrazuje se v tabu Deník, dokud data akce/mapa nejsou stažená (readiness != READY) - identity karta
+/// + karta s výzvou / průběhem / pauzou / chybou podle `DownloadUiState`. Po dokončení přepne shell
+/// Deník na normální obsah (readiness gate v `RootView`); tady žádná explicitní navigace není.
+///
+/// Model **vlastní `RootView`** (jedna sdílená instance), aby stažení přežilo přepínání tabů a neběželo
+/// dvakrát. Karta ho jen pozoruje (`@ObservedObject`).
+struct DownloadCardView: View {
+    @ObservedObject var model: PreparationModel
 
     var body: some View {
         ScrollView {
@@ -32,7 +35,12 @@ struct PreparationView: View {
             .padding(Ta33Spacing.x5)
         }
         .background(Ta33Color.cream)
-        .task { await model.observe() }
+        .task { await requestNotificationPermission() }
+    }
+
+    /// FR-11b: požádá o oprávnění na notifikace při zobrazení download karty (= právě se chystá stahovat).
+    private func requestNotificationPermission() async {
+        _ = try? await UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound])
     }
 
     @ViewBuilder private var statusSection: some View {
@@ -95,7 +103,7 @@ struct PreparationView: View {
         PrimaryButton("Zkusit znovu") { model.retry() }
     }
 
-    /// Přechodný stav - `RootView` přepne na `TabView`, jakmile se readiness stane `.ready`.
+    /// Přechodný stav - shell přepne Deník na obsah, jakmile se readiness stane `.ready`.
     @ViewBuilder private var doneSection: some View {
         HStack {
             Spacer()
@@ -154,6 +162,6 @@ private struct WarningBanner: View {
     }
 }
 
-#Preview("Preparation") {
-    PreparationView()
+#Preview("DownloadCard") {
+    DownloadCardView(model: PreparationModel())
 }

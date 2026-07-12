@@ -2,7 +2,9 @@ package com.example.ta33.di
 
 import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
+import com.example.ta33.core.AndroidNotifier
 import com.example.ta33.core.AndroidUrlOpener
+import com.example.ta33.core.Notifier
 import com.example.ta33.core.UrlOpener
 import com.example.ta33.data.connectivity.AndroidConnectivityMonitor
 import com.example.ta33.data.connectivity.ConnectivityMonitor
@@ -30,4 +32,5 @@ actual val platformModule: Module = module {
     single<LocationPermissionController> { AndroidLocationPermissionController(androidContext()) }
     single<LocationTrackingController> { AndroidLocationTrackingController(androidContext()) }
     single<UrlOpener> { AndroidUrlOpener(androidContext()) }
+    single<Notifier> { AndroidNotifier(androidContext()) }
 }
