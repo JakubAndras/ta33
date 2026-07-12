@@ -32,7 +32,7 @@ class TileStoreImpl(
                 TileSourceSelector.Selection.Preparing -> MapTileSourceState.Preparing
                 is TileSourceSelector.Selection.Error -> MapTileSourceState.Error(sel.message)
                 is TileSourceSelector.Selection.Candidate -> {
-                    // DB says DONE — confirm the bytes are physically present.
+                    // DB says DONE - confirm the bytes are physically present.
                     if (fileStorage.exists(sel.relativePath)) {
                         val abs = fileStorage.baseDir().trimEnd('/') + "/" + sel.relativePath
                         MapTileSourceState.Ready(MapTileSource(sel.tilesetId, abs, sel.format))

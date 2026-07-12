@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Overline label — UPPER, kerning, tlumená barva. Zrcadlí Android `Overline`.
+/// Overline label - UPPER, kerning, tlumená barva. Zrcadlí Android `Overline`.
 struct OverlineLabel: View {
     let text: String
     var color: Color

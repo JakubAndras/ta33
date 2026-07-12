@@ -93,7 +93,7 @@ fun MainShell(
 /**
  * Overlaye vázané na aktivní běh: QR sken (FR-09) + nabídka sběru a Splnění (FR-08).
  * ViewModely se bindují jednou na `runId/routeId`; Splnění se lokálně zavře `dismiss` flagem
- * (VM `lastResult` sám nevyčistí — vyčistí ho až další candidate).
+ * (VM `lastResult` sám nevyčistí - vyčistí ho až další candidate).
  */
 @Composable
 private fun BoxScope.ActiveRunOverlays(

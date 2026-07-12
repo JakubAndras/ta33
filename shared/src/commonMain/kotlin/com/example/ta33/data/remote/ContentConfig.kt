@@ -1,6 +1,6 @@
 package com.example.ta33.data.remote
 
-/** Configurable content source. Final data not delivered yet (project-stack §10) — repoint by changing baseUrl only. */
+/** Configurable content source. Final data not delivered yet (project-stack §10) - repoint by changing baseUrl only. */
 data class ContentConfig(
     val baseUrl: String = DEV_PLACEHOLDER_BASE_URL,
     val manifestPath: String = "manifest.json",

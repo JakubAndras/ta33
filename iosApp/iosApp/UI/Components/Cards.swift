@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Slate identity karta („kdo a kdy") — datum + místo + podtitul. Zrcadlí Android `IdentityCard`.
+/// Slate identity karta („kdo a kdy") - datum + místo + podtitul. Zrcadlí Android `IdentityCard`.
 struct IdentityCard: View {
     let date: String
     let place: String
@@ -27,7 +27,7 @@ struct IdentityCard: View {
     }
 }
 
-/// Bílá „paper" karta — univerzální povrch pro operační obsah. Zrcadlí Android `PaperCard`.
+/// Bílá „paper" karta - univerzální povrch pro operační obsah. Zrcadlí Android `PaperCard`.
 struct PaperCard<Content: View>: View {
     @ViewBuilder let content: Content
 

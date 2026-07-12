@@ -1,16 +1,16 @@
-# UI-04 — App Shell (iOS SwiftUI)
+# UI-04 - App Shell (iOS SwiftUI)
 
-> **Summary**: Nativní iOS `TabView` shell (Deník / Mapa / Přehled) — liquid-glass tab bar, splash gate, hostuje hotový `DenikView`; Mapa/Přehled zatím stub. Zrcadlo Androidu (ui-03), ale iOS-nativní.
+> **Summary**: Nativní iOS `TabView` shell (Deník / Mapa / Přehled) - liquid-glass tab bar, splash gate, hostuje hotový `DenikView`; Mapa/Přehled zatím stub. Zrcadlo Androidu (ui-03), ale iOS-nativní.
 
 ---
 
 ## 1. PROBLEM & SOLUTION
 
 ### 1.1 Problem Statement
-`ContentView` zobrazuje přímo `DenikView` — chybí navigační skořápka. iOS app potřebuje nativní tabovou navigaci (Deník / Mapa / Přehled), scan vstup a splash.
+`ContentView` zobrazuje přímo `DenikView` - chybí navigační skořápka. iOS app potřebuje nativní tabovou navigaci (Deník / Mapa / Přehled), scan vstup a splash.
 
 ### 1.2 Solution Overview
-`RootView` (SwiftUI) přes `AppModel` (ObservableObject nad `AppViewModel` přes SKIE) sleduje `readiness`. LOADING → splash; READY → nativní **`TabView`** se třemi taby (Deník = `DenikView` hotový, Mapa/Přehled stub). Scan vstup jako prominentní tlačítko (toolbar / centrální), zobrazený jen při aktivním běhu. Tab bar je nativní iOS (na iOS 26 „liquid glass" automaticky) — **ne klon Android pillu**.
+`RootView` (SwiftUI) přes `AppModel` (ObservableObject nad `AppViewModel` přes SKIE) sleduje `readiness`. LOADING → splash; READY → nativní **`TabView`** se třemi taby (Deník = `DenikView` hotový, Mapa/Přehled stub). Scan vstup jako prominentní tlačítko (toolbar / centrální), zobrazený jen při aktivním běhu. Tab bar je nativní iOS (na iOS 26 „liquid glass" automaticky) - **ne klon Android pillu**.
 
 ### 1.3 Scope: What This IS
 - iOS `RootView` s nativním `TabView` (3 taby: Deník/Mapa/Přehled).
@@ -21,8 +21,8 @@
 
 ### 1.4 Scope: What This IS NOT
 - **Android** shell (ui-03, hotovo).
-- Reálné **Mapa/Přehled** obrazovky, **Scan/Splnění/Preparation** — stub / callback.
-- Detail routes s `NavigationStack` push historií — zatím taby; detail flow později.
+- Reálné **Mapa/Přehled** obrazovky, **Scan/Splnění/Preparation** - stub / callback.
+- Detail routes s `NavigationStack` push historií - zatím taby; detail flow později.
 
 ---
 
@@ -36,9 +36,9 @@
 | 5 | Taby Deník/Mapa/Přehled přepínají; nativní tab bar (liquid glass na iOS 26) | běh |
 | 6 | Mapa/Přehled stub bez pádu | běh |
 | 7 | Scan vstup jen při aktivním běhu; klik → callback | Preview obou variant |
-| 8 | Žádný hardcoded hex/CGFloat — vše přes `Ta33Color/Font/Spacing/Radius` | code review |
+| 8 | Žádný hardcoded hex/CGFloat - vše přes `Ta33Color/Font/Spacing/Radius` | code review |
 | 9 | iOS-nativní: `TabView` + SF Symbols taby, ne klon Android pillu | code review vůči principu |
-| 10 | Runtime na simulátoru — DEFERRED na Mac | manuální |
+| 10 | Runtime na simulátoru - DEFERRED na Mac | manuální |
 
 ---
 
@@ -80,14 +80,14 @@ iOSApp → ContentView → RootView
 
 ### Step 1: Splash + stub + preparation placeholder
 **Files**: `iosApp/iosApp/UI/Shell/Placeholders.swift` (create)
-- `SplashView` — „TA33" (`Ta33Font.display1`) + `ProgressView` na `Ta33Color.cream`.
-- `StubView(title:)` — cream, centrovaný `OverlineLabel(title)` + „Připravujeme".
-- `PreparationPlaceholder` — stub „Příprava dat akce".
+- `SplashView` - „TA33" (`Ta33Font.display1`) + `ProgressView` na `Ta33Color.cream`.
+- `StubView(title:)` - cream, centrovaný `OverlineLabel(title)` + „Připravujeme".
+- `PreparationPlaceholder` - stub „Příprava dat akce".
 **Done when**: `#Preview` každého.
 
 ### Step 2: Scan vstup
 **Files**: `iosApp/iosApp/UI/Shell/ScanButton.swift` (create)
-- `ScanButton(action:)` — kruhové orange tlačítko (SF Symbol `qrcode.viewfinder`/`viewfinder`), `Ta33Color.orange`, glow `.shadow`, `fgOnOrange`. iOS-idiomatické (ne Material FAB).
+- `ScanButton(action:)` - kruhové orange tlačítko (SF Symbol `qrcode.viewfinder`/`viewfinder`), `Ta33Color.orange`, glow `.shadow`, `fgOnOrange`. iOS-idiomatické (ne Material FAB).
 **Done when**: `#Preview`.
 
 ### Step 3: `RootModel` (AppViewModel přes SKIE)
@@ -96,12 +96,12 @@ iOSApp → ContentView → RootView
 @MainActor
 final class RootModel: ObservableObject {
     private let appVM = ViewModelProvider.shared.appViewModel()
-    @Published var app: AppUiState = /* explicit init — SKIE nemá no-arg */ ...
+    @Published var app: AppUiState = /* explicit init - SKIE nemá no-arg */ ...
     func observe() async { for await s in appVM.state { self.app = s } }
     func onScan() { /* TODO FR-09 scan */ }
 }
 ```
-Ověřit SKIE init `AppUiState` (ui-02 zjistilo, že no-arg init chybí — sestavit explicitně, příp. optional + placeholder).
+Ověřit SKIE init `AppUiState` (ui-02 zjistilo, že no-arg init chybí - sestavit explicitně, příp. optional + placeholder).
 **Done when**: kompiluje, framework link zelený.
 
 ### Step 4: `RootView` (TabView gate)
@@ -153,9 +153,9 @@ struct RootView: View {
 - N/A (navigace/zobrazení).
 
 ## 7. ASSUMPTIONS
-1. **SKIE**: `ViewModelProvider.shared.appViewModel()`, `AppReadiness`/`TopLevelDestination` jako Swift enums, `AppUiState` bez no-arg init (dle ui-02) — sestavit explicitně; ověřit na buildu.
-2. **Taby bez `NavigationStack` push** — detail routes později.
-3. **Scan/Preparation stub** — skutečné obrazovky jiné plány.
+1. **SKIE**: `ViewModelProvider.shared.appViewModel()`, `AppReadiness`/`TopLevelDestination` jako Swift enums, `AppUiState` bez no-arg init (dle ui-02) - sestavit explicitně; ověřit na buildu.
+2. **Taby bez `NavigationStack` push** - detail routes později.
+3. **Scan/Preparation stub** - skutečné obrazovky jiné plány.
 4. **Simulátor nenaboot v sandboxu** → runtime na Mac; v sandboxu framework link (+ xcodebuild je-li Xcode).
 
 ## 8. QUICK REFERENCE
@@ -198,11 +198,11 @@ xcodebuild -project iosApp/iosApp.xcodeproj -scheme iosApp -configuration Debug 
 | Approach | Pros | Cons | Selected? |
 |---|---|---|---|
 | **A. Nativní `TabView` + overlay scan** | iOS-nativní, liquid glass zdarma | Scan overlay je kompromis do FR-09 | ✅ |
-| B. Klon Android plovoucího pillu | Vizuální shoda napříč platformami | Porušuje princip nativního vzhledu | — |
-| C. Custom tab bar (ne TabView) | Plná kontrola vzhledu | Ztráta nativního chování/liquid glass, víc práce | — |
+| B. Klon Android plovoucího pillu | Vizuální shoda napříč platformami | Porušuje princip nativního vzhledu | - |
+| C. Custom tab bar (ne TabView) | Plná kontrola vzhledu | Ztráta nativního chování/liquid glass, víc práce | - |
 ### 12.2 Open Questions
-- [ ] **SKIE enum casing / `AppUiState` init** — Proposed: ověřit na prvním buildu, adaptovat.
-- [ ] **Scan umístění** (overlay vs. centrální tab item) — Proposed: overlay bottom-trailing při běhu; finalizovat s FR-09.
+- [ ] **SKIE enum casing / `AppUiState` init** - Proposed: ověřit na prvním buildu, adaptovat.
+- [ ] **Scan umístění** (overlay vs. centrální tab item) - Proposed: overlay bottom-trailing při běhu; finalizovat s FR-09.
 ### 12.3 Suggestions & Follow-ups
 - Obrazovky Mapa (MapLibre) a Přehled/Profil nahradí stuby.
 - Scan/Preparation/Splnění obrazovky + `NavigationStack` pro detail routes.

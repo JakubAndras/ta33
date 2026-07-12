@@ -51,7 +51,7 @@ fun WarningBanner(text: String, modifier: Modifier = Modifier) {
     }
 }
 
-/** `warning-tint` banner: „Offline režim — záznamy se uloží lokálně". */
+/** `warning-tint` banner: „Offline režim - záznamy se uloží lokálně". */
 @Composable
 fun OfflineBanner(modifier: Modifier = Modifier) {
     WarningBanner(text = stringResource(Res.string.denik_offline_banner), modifier = modifier)

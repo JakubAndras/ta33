@@ -1,6 +1,6 @@
-# UI-05 — Přehled / Profil (Android Compose)
+# UI-05 - Přehled / Profil (Android Compose)
 
-> **Summary**: Obrazovka tabu „Přehled" (Android Compose) nad FR-10 ViewModely — sekce „Tvoje akce" (aktivní trasa, progress, stav stažení) + „Nastavení" (notifikace toggle, kontakt na pořadatele, FAQ). Nahrazuje stub v app-shellu.
+> **Summary**: Obrazovka tabu „Přehled" (Android Compose) nad FR-10 ViewModely - sekce „Tvoje akce" (aktivní trasa, progress, stav stažení) + „Nastavení" (notifikace toggle, kontakt na pořadatele, FAQ). Nahrazuje stub v app-shellu.
 
 ---
 
@@ -20,9 +20,9 @@ Tab „Přehled" v app-shellu (ui-03) je zatím `StubScreen`. Logika FR-10 (`Ove
 - Napojení do `MainShell` (tab Přehled).
 
 ### 1.4 Scope: What This IS NOT
-- **iOS** verze — samostatný plán (ui-06).
-- **Etapa 2** prvky z designu: avatar/jméno/e-mail účastníka, **startovní číslo**, stav „Zaplaceno", **odbavovací QR**, přepínač „Hlasové pokyny" — v logice Etapy 1 nejsou (auth/platba/rezervace = Etapa 2). Vynechat + poznámka.
-- Skutečná navigace „Kontaktovat pořadatele" do e-mailu/telefonu (Intent) — zobrazit kontakt, akce je drobný follow-up.
+- **iOS** verze - samostatný plán (ui-06).
+- **Etapa 2** prvky z designu: avatar/jméno/e-mail účastníka, **startovní číslo**, stav „Zaplaceno", **odbavovací QR**, přepínač „Hlasové pokyny" - v logice Etapy 1 nejsou (auth/platba/rezervace = Etapa 2). Vynechat + poznámka.
+- Skutečná navigace „Kontaktovat pořadatele" do e-mailu/telefonu (Intent) - zobrazit kontakt, akce je drobný follow-up.
 - Deník/Mapa obrazovky, scan, Preparation flow.
 
 ---
@@ -39,7 +39,7 @@ Tab „Přehled" v app-shellu (ui-03) je zatím `StubScreen`. Logika FR-10 (`Ove
 | 6 | Kontakt na pořadatele (`OrganizerContact.name` + kontakt) se zobrazí | preview |
 | 7 | FAQ: seznam otázek, klik rozbalí odpověď (`AnimatedVisibility`) | preview |
 | 8 | `loading` (obě VM) → spinner | preview |
-| 9 | Žádný hardcoded hex/dp v UI — vše přes theme | code review |
+| 9 | Žádný hardcoded hex/dp v UI - vše přes theme | code review |
 
 ---
 
@@ -82,13 +82,13 @@ Klíče: `prehled_section_event` („Tvoje akce"), `prehled_active_route` („Ak
 
 ### Step 2: `SettingRow` + `KeyValueRow` komponenty
 **Files**: `ui/components/Rows.kt` (create)
-- `KeyValueRow(label, value, valueColor = fgMuted)` — řádek label vlevo (`bodyStrong` `fgStrong`), value vpravo (`body`), 1px `slate-100` divider mezi řádky (ne u prvního).
-- `SettingRow(label, trailing: @Composable)` — label + trailing slot (Switch nebo chevron ikona).
+- `KeyValueRow(label, value, valueColor = fgMuted)` - řádek label vlevo (`bodyStrong` `fgStrong`), value vpravo (`body`), 1px `slate-100` divider mezi řádky (ne u prvního).
+- `SettingRow(label, trailing: @Composable)` - label + trailing slot (Switch nebo chevron ikona).
 **Done when**: `@Preview`.
 
 ### Step 3: `FaqRow` (rozbalovací)
 **Files**: `ui/components/FaqRow.kt` (create)
-- `FaqRow(item: FaqItem)` — klikací hlavička (otázka `bodyStrong` + chevron rotující), `AnimatedVisibility` s odpovědí (`body` `fgMuted`). Stav `remember { mutableStateOf(false) }`.
+- `FaqRow(item: FaqItem)` - klikací hlavička (otázka `bodyStrong` + chevron rotující), `AnimatedVisibility` s odpovědí (`body` `fgMuted`). Stav `remember { mutableStateOf(false) }`.
 **Done when**: `@Preview` rozbalený i sbalený.
 
 ### Step 4: Stateless `PrehledContent`
@@ -168,8 +168,8 @@ V `MainShell`: `TopLevelDestination.PREHLED -> PrehledScreen()` (místo `StubScr
 - Kontakt na pořadatele je veřejný. Žádná citlivá data. Nelogovat.
 
 ## 7. ASSUMPTIONS
-1. **Etapa 2 prvky vynechány** (avatar/jméno/startovní číslo/Zaplaceno/QR/hlasové pokyny) — v logice Etapy 1 nejsou; design je Etapa 2.
-2. **`OverviewViewModel`/`SettingsViewModel` bez `bind()`** — startují samy v `init` (ověřeno). Jen `koinViewModel()`.
+1. **Etapa 2 prvky vynechány** (avatar/jméno/startovní číslo/Zaplaceno/QR/hlasové pokyny) - v logice Etapy 1 nejsou; design je Etapa 2.
+2. **`OverviewViewModel`/`SettingsViewModel` bez `bind()`** - startují samy v `init` (ověřeno). Jen `koinViewModel()`.
 3. **`setNotificationsEnabled` je jediný zapisovací intent** v nastavení; ostatní řádky jsou zobrazení/nav.
 4. **„Synchronizováno" = stav offline balíčku** (`syncStatus`), ne upload výsledků (ten je Etapa 2).
 
@@ -178,7 +178,7 @@ V `MainShell`: `TopLevelDestination.PREHLED -> PrehledScreen()` (místo `StubScr
 - `ui/components/Rows.kt`, `ui/components/FaqRow.kt`
 - `ui/prehled/PrehledContent.kt`, `ui/prehled/PrehledScreen.kt`
 ### Files to Modify
-- `ui/shell/MainShell.kt` — tab PREHLED → `PrehledScreen`
+- `ui/shell/MainShell.kt` - tab PREHLED → `PrehledScreen`
 - `shared/.../composeResources/values{,-cs}/strings.xml`
 ### Commands
 ```bash
@@ -215,12 +215,12 @@ V `MainShell`: `TopLevelDestination.PREHLED -> PrehledScreen()` (místo `StubScr
 | Approach | Pros | Cons | Selected? |
 |---|---|---|---|
 | **A. Overview + Settings karty, Etapa 2 prvky vynechány** | Věrné hotové logice, žádná fabrikace | Vizuálně chudší než design mockup | ✅ |
-| B. Zahrnout i identity/číslo/QR jako placeholdery | Blíž mockupu | Fabrikace neexistujících dat, mate | — |
-| C. Sloučit do jedné karty | Méně kódu | Míchá přehled a nastavení, hůř čitelné | — |
+| B. Zahrnout i identity/číslo/QR jako placeholdery | Blíž mockupu | Fabrikace neexistujících dat, mate | - |
+| C. Sloučit do jedné karty | Méně kódu | Míchá přehled a nastavení, hůř čitelné | - |
 ### 12.2 Open Questions
-- [ ] **Kontakt na pořadatele — akce?** — Proposed: teď zobrazit; `Intent.ACTION_SENDTO`/`DIAL` jako drobný follow-up.
-- [ ] **FAQ — inline rozbalení vs. samostatná obrazovka?** — Proposed: inline rozbalení (méně navigace); revidovat, když FAQ naroste.
+- [ ] **Kontakt na pořadatele - akce?** - Proposed: teď zobrazit; `Intent.ACTION_SENDTO`/`DIAL` jako drobný follow-up.
+- [ ] **FAQ - inline rozbalení vs. samostatná obrazovka?** - Proposed: inline rozbalení (méně navigace); revidovat, když FAQ naroste.
 ### 12.3 Suggestions & Follow-ups
-- iOS Přehled (ui-06) — nativní `List`/`Form`, `Toggle`, `DisclosureGroup`.
+- iOS Přehled (ui-06) - nativní `List`/`Form`, `Toggle`, `DisclosureGroup`.
 - Etapa 2: identity/startovní číslo/odbavovací QR/platba, hlasové pokyny.
 - Intent akce pro kontakt (e-mail/telefon/web).

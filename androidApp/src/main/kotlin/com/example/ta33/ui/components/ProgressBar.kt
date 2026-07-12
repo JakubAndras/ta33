@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.dp
 import com.example.ta33.ui.theme.Ta33Theme
 
 /**
- * Vodorovný pill progress bar — track `surfaceVariant`, fill `primary`, výška 10.
+ * Vodorovný pill progress bar - track `surfaceVariant`, fill `primary`, výška 10.
  * `fraction` se ořízne do 0..1.
  */
 @Composable

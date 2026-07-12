@@ -3,11 +3,11 @@ package com.example.ta33.ui.theme
 import androidx.compose.ui.graphics.Color
 
 /**
- * Raw color tokens — 1:1 z TA33 Design System (`colors_and_type.css`).
+ * Raw color tokens - 1:1 z TA33 Design System (`colors_and_type.css`).
  * Nepoužívej tyhle přímo v UI; ber je přes [Ta33Theme] / [Ta33Colors].
  */
 internal object Ta33Palette {
-    // Brand — orange (sandstone)
+    // Brand - orange (sandstone)
     val Orange50 = Color(0xFFFFF1E2)
     val Orange100 = Color(0xFFFCDEC1)
     val Orange200 = Color(0xFFFCC081)
@@ -17,7 +17,7 @@ internal object Ta33Palette {
     val Orange600 = Color(0xFFC45607)
     val Orange700 = Color(0xFF974303)
 
-    // Dark — slate
+    // Dark - slate
     val Slate900 = Color(0xFF15202B)
     val Slate800 = Color(0xFF1C2A36)
     val Slate700 = Color(0xFF2A3A48)

@@ -15,15 +15,15 @@ LANGUAGES: $ARGUMENTS
 
 ## Project Stack Reference
 
-This command is stack-agnostic — it does NOT assume Flutter, JSON files, or any specific i18n library. All localization details come from `STACK_FILE`.
+This command is stack-agnostic - it does NOT assume Flutter, JSON files, or any specific i18n library. All localization details come from `STACK_FILE`.
 
 **Before doing anything, read `STACK_FILE` and extract its "Localization / Translations" section:**
-- **System** — the i18n library / mechanism in use (e.g. moko-resources, Lyricist, Compose resources, native `strings.xml` / `Localizable.strings`)
-- **Source-of-truth (source language) file** — where the original strings live
-- **Per-language files / directories** — where each locale's strings live and how they are named
-- **How keys are referenced in code** — the pattern to grep for usage/context
-- **Files this command MAY write** — respect any restriction on which locales are hand-translated here
-- **Placeholder format** — the exact placeholder syntax that must be preserved
+- **System** - the i18n library / mechanism in use (e.g. moko-resources, Lyricist, Compose resources, native `strings.xml` / `Localizable.strings`)
+- **Source-of-truth (source language) file** - where the original strings live
+- **Per-language files / directories** - where each locale's strings live and how they are named
+- **How keys are referenced in code** - the pattern to grep for usage/context
+- **Files this command MAY write** - respect any restriction on which locales are hand-translated here
+- **Placeholder format** - the exact placeholder syntax that must be preserved
 
 **If `STACK_FILE` does not exist or has no Localization section**, STOP and tell the user to create it (see `.claude/project-stack.template.md`). Do not guess the localization layout.
 
@@ -32,7 +32,7 @@ This command is stack-agnostic — it does NOT assume Flutter, JSON files, or an
 ### 1. For each target language specified in `LANGUAGES`:
 - Confirm the language is one this command is allowed to write (per `STACK_FILE`). Skip and report any that are handled by a separate workflow.
 - Locate the target language's translation file/resource using the paths from `STACK_FILE`.
-- Identify all keys that are **missing** — empty values, or keys present in the source language but absent from the target. Use whatever "missing" means for this project's format (empty string, missing entry, untranslated marker).
+- Identify all keys that are **missing** - empty values, or keys present in the source language but absent from the target. Use whatever "missing" means for this project's format (empty string, missing entry, untranslated marker).
 - Build a list of missing keys per language.
 
 ### 2. For each missing translation key:
@@ -62,7 +62,7 @@ This command is stack-agnostic — it does NOT assume Flutter, JSON files, or an
 - Keys that couldn't be translated due to missing context.
 
 ## Important Guidelines
-- **Context is crucial**: a word like "scan" can be a noun or a verb depending on usage — check the code.
+- **Context is crucial**: a word like "scan" can be a noun or a verb depending on usage - check the code.
 - **Preserve placeholders**: keep the placeholder syntax defined in `STACK_FILE` exactly.
 - **Maintain consistency**: same source term → same translation across the app.
 - **Consider UI constraints**: button text concise, error messages clear.

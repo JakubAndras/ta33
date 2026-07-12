@@ -1,4 +1,4 @@
--- Trackpoint.sq  — ADDITIVE over FR-02 (one row per kept breadcrumb point).
+-- Trackpoint.sq  - ADDITIVE over FR-02 (one row per kept breadcrumb point).
 CREATE TABLE Trackpoint (
     id TEXT NOT NULL PRIMARY KEY,
     runSessionId TEXT NOT NULL,        -- FK-style link to FR-02 RunSession.id

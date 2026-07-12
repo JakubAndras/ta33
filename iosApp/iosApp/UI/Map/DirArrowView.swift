@@ -1,7 +1,7 @@
 import SwiftUI
 import Shared
 
-/// Směrová šipka (`DirArrow`) — kreslená nativním SwiftUI `Canvas`, škálovaná z návrhového
+/// Směrová šipka (`DirArrow`) - kreslená nativním SwiftUI `Canvas`, škálovaná z návrhového
 /// viewportu 24×24 (stroke 2.4, round cap/join). Základní up/down/left/right (a straight) je šipka
 /// nahoru orotovaná; `leftUp` a `leftRight` jsou dedikované dvouhlavé glyfy. Zrcadlí Android `DirArrow`.
 struct DirArrowView: View {

@@ -1,6 +1,6 @@
 package com.example.ta33.core
 
-/** PURE. Elapsed derives from wall-clock time — never accumulated, so it cannot drift and
+/** PURE. Elapsed derives from wall-clock time - never accumulated, so it cannot drift and
  *  is correct after app restart (start timestamp is durable in FR-02 RunSession). */
 object Stopwatch {
     fun elapsed(nowMillis: Long, startedAtMillis: Long?, finishedAtMillis: Long?): Long = when {

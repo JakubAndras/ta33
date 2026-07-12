@@ -7,7 +7,7 @@ model: opus
 
 # Plan Implement
 
-Execute an implementation plan file step-by-step. You are a disciplined executor — follow the plan exactly, verify each step, and never improvise beyond what the plan specifies.
+Execute an implementation plan file step-by-step. You are a disciplined executor - follow the plan exactly, verify each step, and never improvise beyond what the plan specifies.
 
 ## Variables
 
@@ -16,27 +16,27 @@ STACK_FILE: `.claude/project-stack.md`
 
 ## Project Stack Reference
 
-This command is stack-agnostic. Every project-specific detail — module layout, build/verify commands, dependency injection, theming, code style, code generation — comes from `STACK_FILE`, NOT from assumptions.
+This command is stack-agnostic. Every project-specific detail - module layout, build/verify commands, dependency injection, theming, code style, code generation - comes from `STACK_FILE`, NOT from assumptions.
 
 **Before doing anything, read `STACK_FILE`.** If it does not exist, STOP and tell the user:
 > `.claude/project-stack.md` is required but missing. Create it (see `.claude/project-stack.template.md`) so I know this project's build commands, module structure, DI, theming, and conventions. I will not guess the stack.
 
 From `STACK_FILE`, extract and hold onto:
-- **Build & Verification** — the exact compile, static-analysis/lint, and test commands
-- **Module Structure** — where source lives
-- **Dependency Injection** — how/where services are registered
-- **Theming / Design Tokens** — where colors, spacing, typography come from
-- **Code Style** — line width and other conventions
-- **Code Generation** — codegen tooling and when it must run
+- **Build & Verification** - the exact compile, static-analysis/lint, and test commands
+- **Module Structure** - where source lives
+- **Dependency Injection** - how/where services are registered
+- **Theming / Design Tokens** - where colors, spacing, typography come from
+- **Code Style** - line width and other conventions
+- **Code Generation** - codegen tooling and when it must run
 
 Wherever the rules or workflow below say "per `STACK_FILE`", use the values you extracted.
 
-## Rules — Read These First
+## Rules - Read These First
 
 1. **Follow the plan literally.** Do not add features, refactor surrounding code, or "improve" things not in the plan.
 2. **One step at a time.** Complete Step N fully (including verification) before starting Step N+1.
 3. **Stop on failure.** If a step fails verification, do NOT continue. Fix the issue within that step's scope, then re-verify. If you cannot fix it after 2 attempts, stop and report the blocker.
-4. **No guessing.** If the plan references a file, read it first. If the plan references behavior, verify it exists. Never assume code structure — always confirm.
+4. **No guessing.** If the plan references a file, read it first. If the plan references behavior, verify it exists. Never assume code structure - always confirm.
 5. **Preserve existing code.** Only modify files listed in the plan. If you discover you need to touch an unlisted file, note it but ask before proceeding.
 6. **Respect design tokens.** All colors, spacing, typography, etc. come from the theming source defined in `STACK_FILE`. Never hardcode design values.
 7. **Respect line width and code style** as defined in `STACK_FILE`.
@@ -53,11 +53,11 @@ Read `STACK_FILE` and apply the **Project Stack Reference** section above before
 
 1. **Read the plan file** at `PLAN_FILE`. If the file does not exist, report the error and stop immediately.
 2. **Extract and memorize** these sections from the plan:
-   - **Success Criteria** (Section 2) — these are your exit conditions
-   - **Implementation Steps** (Section 4) — these are your tasks
-   - **Edge Cases & Errors** (Section 5) — handle these during implementation
-   - **Files to Modify** (Section 8, Quick Reference) — your change scope
-   - **Assumptions** (Section 7) — be aware of these; flag if any seem wrong
+   - **Success Criteria** (Section 2) - these are your exit conditions
+   - **Implementation Steps** (Section 4) - these are your tasks
+   - **Edge Cases & Errors** (Section 5) - handle these during implementation
+   - **Files to Modify** (Section 8, Quick Reference) - your change scope
+   - **Assumptions** (Section 7) - be aware of these; flag if any seem wrong
 3. **Read ALL files listed** in the plan's "Files to Modify" / Quick Reference section. Understand the current state before changing anything.
 4. **Report your understanding** to the user in this format:
 
@@ -93,7 +93,7 @@ Goal: [step goal from plan]
 - Make the changes described in the step
 - Follow any code examples provided in the plan
 - Apply edge case handling from Section 5 where relevant
-- Keep changes minimal — do exactly what the step says, nothing more
+- Keep changes minimal - do exactly what the step says, nothing more
 
 #### D. Verify
 - Check the step's "Done when" criterion
@@ -130,12 +130,12 @@ After ALL steps are complete:
 
 This phase is **MANDATORY** on every `plan-implement` run and executes after Phase 3 passes. The goal: no plan is "done" until its own diff has been reviewed and the actionable findings incorporated.
 
-1. **Run the code review.** Actually invoke the built-in code-review skill via the Skill tool: `Skill(skill="code-review")`. It reviews the current working-tree diff — i.e. exactly what this implementation produced. For a large or multi-file plan, request broader coverage with `args="high"`. Do not paraphrase or simulate the review — run the skill.
+1. **Run the code review.** Actually invoke the built-in code-review skill via the Skill tool: `Skill(skill="code-review")`. It reviews the current working-tree diff - i.e. exactly what this implementation produced. For a large or multi-file plan, request broader coverage with `args="high"`. Do not paraphrase or simulate the review - run the skill.
 2. **Triage each finding:**
    - **In-scope** (bug, regression, or quality issue in code THIS plan added or changed) → incorporate it.
    - **Pre-existing / out-of-scope** (in code the plan never touched) → do NOT fix; record under Notes so the user decides.
    - **False positive / disagree** → skip, with a one-line reason in the report.
-3. **Incorporate the fixes.** Apply the in-scope findings directly to the working tree (edits are fine — they are still part of THIS implementation). Keep each fix tight to what was flagged; do not start unrelated refactors.
+3. **Incorporate the fixes.** Apply the in-scope findings directly to the working tree (edits are fine - they are still part of THIS implementation). Keep each fix tight to what was flagged; do not start unrelated refactors.
 4. **Re-verify after fixes.** Re-run the relevant build / tests / lint (per `STACK_FILE`) so the incorporated fixes are proven green. If a fix breaks something you cannot resolve in 2 attempts, revert that specific fix and report it as a blocker rather than leaving the tree broken.
 5. **Loop if needed.** If incorporating fixes materially changed the diff, you MAY run one more review→fix round. Cap at **2 rounds** to avoid churn; note anything still open.
 
@@ -158,14 +158,14 @@ Steps Completed: [N]/[total]
 Success Criteria:
   ✅ [criterion 1]
   ✅ [criterion 2]
-  ❌ [criterion 3 — if any failed]
+  ❌ [criterion 3 - if any failed]
 
 Files Modified:
   - path/to/file.ext (created|modified)
   - path/to/file.ext (created|modified)
 
 Static Analysis: ✅ Pass | ❌ [N] issues
-Code Review: [N] findings — [M] incorporated, [K] deferred (pre-existing/out-of-scope), [J] dismissed
+Code Review: [N] findings - [M] incorporated, [K] deferred (pre-existing/out-of-scope), [J] dismissed
 
 ⚠️ Notes:
   - [Any deviations from the plan]
@@ -188,7 +188,7 @@ Code Review: [N] findings — [M] incorporated, [K] deferred (pre-existing/out-o
 | Static analysis / lint finds new issues | Fix only issues caused by this implementation |
 | Code generation fails | Report the error, attempt to fix if it's a simple issue |
 | Code review (Phase 4) finds an in-scope issue | Incorporate the fix, re-verify (build/tests/lint), then finalize |
-| An incorporated review fix breaks the build/tests | Retry within scope once; if still broken, revert that specific fix and report it as a blocker — never leave the tree broken |
+| An incorporated review fix breaks the build/tests | Retry within scope once; if still broken, revert that specific fix and report it as a blocker - never leave the tree broken |
 | code-review skill unavailable or errors | Note it in the report and fall back to a manual self-review of the diff (correctness + the plan's own conventions); do not silently skip review |
 | `STACK_FILE` missing | Stop immediately, ask the user to create `.claude/project-stack.md` |
 
@@ -198,7 +198,7 @@ Code Review: [N] findings — [M] incorporated, [K] deferred (pre-existing/out-o
 - Do NOT refactor code that the plan doesn't touch
 - Do NOT add extra error handling beyond what the plan specifies
 - Do NOT create test files unless the plan explicitly includes them
-- Do NOT commit changes — leave that to the user
+- Do NOT commit changes - leave that to the user
 - Do NOT add documentation files unless the plan requires them
 - Do NOT skip steps even if they seem trivial
-- Do NOT reorder steps — the plan author ordered them intentionally
+- Do NOT reorder steps - the plan author ordered them intentionally

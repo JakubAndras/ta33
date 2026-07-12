@@ -26,7 +26,7 @@ import com.example.ta33.ui.theme.Ta33Theme
  * aktivní ikona/štítek = brand orange, pilulka indikátoru = orange tint (`primaryContainer`),
  * neaktivní = `fgMuted`. Safe-area inset (gesture bar) si `NavigationBar` řeší sám.
  *
- * (iOS strana používá nativní `TabView` s Liquid Glass — sdílíme model, ne vzhled.)
+ * (iOS strana používá nativní `TabView` s Liquid Glass - sdílíme model, ne vzhled.)
  */
 @Composable
 fun Ta33BottomNav(
@@ -67,7 +67,7 @@ private fun RowScope.NavItem(
     )
 }
 
-/** Kruhový orange scan FAB s glow — vstupní bod pro QR sken (FR-09), jen při aktivním běhu. */
+/** Kruhový orange scan FAB s glow - vstupní bod pro QR sken (FR-09), jen při aktivním běhu. */
 @Composable
 fun ScanFab(onClick: () -> Unit, modifier: Modifier = Modifier) {
     FloatingActionButton(

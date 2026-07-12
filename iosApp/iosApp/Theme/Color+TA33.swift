@@ -10,10 +10,10 @@ extension Color {
     }
 }
 
-/// TA33 barevné tokeny — 1:1 z design systému (`colors_and_type.css`).
+/// TA33 barevné tokeny - 1:1 z design systému (`colors_and_type.css`).
 /// Zrcadlí `Ta33Palette` + `Ta33Colors` na Androidu. Neber hex přímo v UI, ber přes tyto tokeny.
 enum Ta33Color {
-    // Brand — orange
+    // Brand - orange
     static let orange50 = Color(hex: 0xFFF1E2)
     static let orange100 = Color(hex: 0xFCDEC1)
     static let orange200 = Color(hex: 0xFCC081)
@@ -23,7 +23,7 @@ enum Ta33Color {
     static let orange600 = Color(hex: 0xC45607)
     static let orange700 = Color(hex: 0x974303)
 
-    // Dark — slate
+    // Dark - slate
     static let slate900 = Color(hex: 0x15202B)
     static let slate800 = Color(hex: 0x1C2A36)
     static let slate700 = Color(hex: 0x2A3A48)

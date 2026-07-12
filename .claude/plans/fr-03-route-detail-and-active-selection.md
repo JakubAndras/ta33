@@ -1,20 +1,20 @@
-# FR-03 Route (Trasa) — Summary, Detail & Active-Route Selection (Logic Only)
+# FR-03 Route (Trasa) - Summary, Detail & Active-Route Selection (Logic Only)
 
-> **Summary**: Add the shared, headless *logic* for browsing routes — a route list with a per-route summary (name · distance · control count), a route detail (route metadata + controls ordered by `ordinal`), and a persisted "selected active route" — as use-cases + `StateFlow` ViewModels over the existing FR-02 repositories, with no UI built.
+> **Summary**: Add the shared, headless *logic* for browsing routes - a route list with a per-route summary (name · distance · control count), a route detail (route metadata + controls ordered by `ordinal`), and a persisted "selected active route" - as use-cases + `StateFlow` ViewModels over the existing FR-02 repositories, with no UI built.
 
 ---
 
 ## 1. PROBLEM & SOLUTION
 
 ### 1.1 Problem Statement
-A TA33 participant needs to see the available route(s) and open the detail of one — e.g. "Trasa A · 33 km · 5 kontrol" with its list of control points — and to pick which route is *their* active route (the one the Overview/FR-10 and navigation revolve around). Today FR-02 stores routes and controls and FR-01 *derives* an active route heuristically, but nothing reads a route's control count for a list, exposes an ordered detail reactively, or *remembers* an explicit route choice across restarts.
+A TA33 participant needs to see the available route(s) and open the detail of one - e.g. "Trasa A · 33 km · 5 kontrol" with its list of control points - and to pick which route is *their* active route (the one the Overview/FR-10 and navigation revolve around). Today FR-02 stores routes and controls and FR-01 *derives* an active route heuristically, but nothing reads a route's control count for a list, exposes an ordered detail reactively, or *remembers* an explicit route choice across restarts.
 
 ### 1.2 Solution Overview
 Add a thin FR-03 presentation + domain layer on top of the FR-02 data foundation: two read models (`RouteSummary`, `RouteDetail`), three use-cases (`ObserveRoutes`, `ObserveRouteDetail`, `SelectActiveRoute`) plus a small pure resolver and a selection observer, and two headless `StateFlow` ViewModels (`RouteListViewModel`, `RouteDetailViewModel`). Route length is the **stored** `distanceKm` value from the content JSON (FR-11), never computed. Four clearly-flagged additive seams supply what FR-02/FR-01 don't yet: a JOIN+COUNT summary query, a reactive detail read, a new persisted `AppPreferences.selectedRouteId`, and a coordinated tweak so FR-01's active-route derivation prefers the persisted selection.
 
 ### 1.3 Scope: What This IS
 - **Read models** (`domain/model`): `RouteSummary` (routeId, name, distanceKm, controlCount) and `RouteDetail` (id, name, distanceKm, controls sorted by `ordinal`).
-- **Pure helper** (`domain/route`): `ActiveRouteResolver` — deterministic effective-route rule shared by FR-03 and the FR-01 seam.
+- **Pure helper** (`domain/route`): `ActiveRouteResolver` - deterministic effective-route rule shared by FR-03 and the FR-01 seam.
 - **Use-cases** (`domain/usecase`): `ObserveRoutesUseCase`, `ObserveRouteDetailUseCase`, `ObserveSelectedRouteUseCase`, `SelectActiveRouteUseCase`.
 - **Headless ViewModels** (`presentation`): `RouteListViewModel` + `RouteDetailViewModel` (each a `StateFlow<…UiState>`); no UI consumes them yet.
 - **Seam A (FR-02, additive)**: `RouteRepository.observeRouteSummaries(): Flow<List<RouteSummary>>` backed by a new `selectRouteSummaries` JOIN+COUNT query.
@@ -25,12 +25,12 @@ Add a thin FR-03 presentation + domain layer on top of the FR-02 data foundation
 - **Unit tests** (`commonTest`) with fakes over the repositories.
 
 ### 1.4 Scope: What This IS NOT
-- **No UI whatsoever** — no Compose/SwiftUI screens, no lists, no detail layout, no theming, no visuals, no string/plural formatting of "Trasa A · 33 km · 5 kontrol" (that label + Czech pluralization is a UI/localization concern, deferred). The read models expose **raw** fields only.
-- **No map render (FR-06)** and **no mapy.cz link (FR-07)** — those consume the route/controls later; FR-03 only loads and shapes the data.
-- **No deník/log logic (FR-04)** — FR-03 provides the ordered controls seam FR-04 builds on, but computes no collection state, progress, or split times.
-- **No redefinition of FR-02** — `Route`, `ControlPoint`, `GeoPoint`, `RouteRepository`, `Ta33Database`, `TimeProvider` are **referenced**, not duplicated. Seams A/B are additive methods; content is still populated by FR-11 via `upsertRoute`.
-- **No distance computation** — the official `distanceKm` from content is used as-is (FR-02 stores no route polyline to compute from anyway).
-- **No new Gradle modules** — everything lives in `:shared` as package layers (project-stack §12).
+- **No UI whatsoever** - no Compose/SwiftUI screens, no lists, no detail layout, no theming, no visuals, no string/plural formatting of "Trasa A · 33 km · 5 kontrol" (that label + Czech pluralization is a UI/localization concern, deferred). The read models expose **raw** fields only.
+- **No map render (FR-06)** and **no mapy.cz link (FR-07)** - those consume the route/controls later; FR-03 only loads and shapes the data.
+- **No deník/log logic (FR-04)** - FR-03 provides the ordered controls seam FR-04 builds on, but computes no collection state, progress, or split times.
+- **No redefinition of FR-02** - `Route`, `ControlPoint`, `GeoPoint`, `RouteRepository`, `Ta33Database`, `TimeProvider` are **referenced**, not duplicated. Seams A/B are additive methods; content is still populated by FR-11 via `upsertRoute`.
+- **No distance computation** - the official `distanceKm` from content is used as-is (FR-02 stores no route polyline to compute from anyway).
+- **No new Gradle modules** - everything lives in `:shared` as package layers (project-stack §12).
 
 ---
 
@@ -59,7 +59,7 @@ Implementation is COMPLETE when ALL criteria are met:
 ### 3.1 Architecture
 
 ```
-        NATIVE UI (later phase — NOT built here)
+        NATIVE UI (later phase - NOT built here)
         reads RouteListUiState / RouteDetailUiState, sends selectRoute()/makeActive()
    ══════════════════ SHARED CORE (:shared, commonMain) ══════════════════
                      presentation/
@@ -101,10 +101,10 @@ Implementation is COMPLETE when ALL criteria are met:
 | Route length | **Stored `distanceKm`** from content JSON (FR-11), read straight through | Organizer supplies the official distance; FR-02 stores only control *points* (no polyline), so computing would be both unnecessary and inaccurate |
 | List control count | **Seam A**: `selectRouteSummaries` = `LEFT JOIN … GROUP BY … COUNT` → `RouteRepository.observeRouteSummaries()` | `observeRoutes()` returns metadata-only routes (empty `controls`), so it can't show "5 kontrol"; one reactive JOIN avoids N+1 count queries |
 | Detail reactivity | **Seam B**: reactive `observeRouteWithControls(routeId): Flow<Route?>` (reuses existing `selectRouteById` + `selectControlsForRoute`) | Consistent with the Flow-based offline-first core; auto-updates if FR-11 re-downloads content while a detail is observed. One-shot `getRouteWithControls` kept for validation (§12.1) |
-| Persisted selection | **Seam C**: new single-row `AppPreferences` table + `AppPreferencesRepository` (FR-03-owned) | Mirrors FR-11's single-row `Preparation` pattern; SQLDelight-native + reactive; extensible home for later prefs (FR-10 notifications) — avoids a new `multiplatform-settings` dependency and avoids coupling to FR-11's table |
+| Persisted selection | **Seam C**: new single-row `AppPreferences` table + `AppPreferencesRepository` (FR-03-owned) | Mirrors FR-11's single-row `Preparation` pattern; SQLDelight-native + reactive; extensible home for later prefs (FR-10 notifications) - avoids a new `multiplatform-settings` dependency and avoids coupling to FR-11's table |
 | Effective active route | **Pure `ActiveRouteResolver`** shared by FR-03 + FR-01 | One tested rule (`run ?: validated-selection ?: sole-route ?: null`); prevents FR-01 and FR-03 from drifting apart |
 | Selection vs. app active route | FR-03 **persists the user's selection**; FR-01 owns the **run-aware effective** `activeRouteId` (via the shared resolver) | Keeps FR-03 free of `RunRepository` coupling; FR-01 stays the single source for navigation/overview |
-| Label / pluralization | **Not in domain** — models expose raw `name`/`distanceKm`/`controlCount` | "· 33 km · 5 kontrol" needs Czech plurals + units, a UI/localization (Compose resources) concern; deferred with the rest of UI |
+| Label / pluralization | **Not in domain** - models expose raw `name`/`distanceKm`/`controlCount` | "· 33 km · 5 kontrol" needs Czech plurals + units, a UI/localization (Compose resources) concern; deferred with the rest of UI |
 | `SelectActiveRoute` validation | Reuse FR-02 **`getRouteWithControls`** to reject unknown ids (no new seam) | Prevents persisting a dangling selection at the source |
 | ViewModel style | `MutableStateFlow` + `asStateFlow`, `viewModelScope`, `bind(routeId)` for detail | Mirrors FR-02 `RunLogViewModel` / FR-01 `AppViewModel` |
 
@@ -122,7 +122,7 @@ Implementation is COMPLETE when ALL criteria are met:
 ```kotlin
 // domain/model/RouteSummary.kt
 package com.example.ta33.domain.model
-/** List-row projection for FR-03. Raw fields only — label/units/plurals are a UI concern. */
+/** List-row projection for FR-03. Raw fields only - label/units/plurals are a UI concern. */
 data class RouteSummary(
     val routeId: String,
     val name: String,        // e.g. "Trasa A"
@@ -149,7 +149,7 @@ package com.example.ta33.domain.route
 /**
  * Effective active route id. An in-progress run's route wins; else the persisted selection
  * if it is still among the available routes; else the sole route; else null.
- * Pure + deterministic — shared by FR-03 (ObserveSelectedRoute) and FR-01 (AppStateReducer).
+ * Pure + deterministic - shared by FR-03 (ObserveSelectedRoute) and FR-01 (AppStateReducer).
  */
 object ActiveRouteResolver {
     fun resolve(
@@ -166,7 +166,7 @@ object ActiveRouteResolver {
 
 ---
 
-### Step 2: Add SQLDelight — summary query (Seam A) + `AppPreferences` table (Seam C)
+### Step 2: Add SQLDelight - summary query (Seam A) + `AppPreferences` table (Seam C)
 **Goal**: A JOIN+COUNT projection for the list and a durable single-row selection store.
 **Files**: `shared/src/commonMain/sqldelight/com/example/ta33/data/db/Route.sq` (edit, FR-02), `.../AppPreferences.sq` (new)
 
@@ -189,7 +189,7 @@ INSERT OR IGNORE INTO AppPreferences(id, selectedRouteId) VALUES (1, NULL);
 selectPreferences: SELECT * FROM AppPreferences WHERE id = 1;
 setSelectedRouteId: UPDATE AppPreferences SET selectedRouteId = ? WHERE id = 1;
 ```
-> `COUNT(...)` generates a `Long` column — map to `Int` in Step 4. The seed `INSERT OR IGNORE` guarantees the row exists (same pattern as FR-11's `Preparation`).
+> `COUNT(...)` generates a `Long` column - map to `Int` in Step 4. The seed `INSERT OR IGNORE` guarantees the row exists (same pattern as FR-11's `Preparation`).
 
 **Done when**: `./gradlew build` regenerates `RouteQueries.selectRouteSummaries` (with a generated projection type, e.g. `SelectRouteSummaries`) and `AppPreferencesQueries`.
 
@@ -199,7 +199,7 @@ setSelectedRouteId: UPDATE AppPreferences SET selectedRouteId = ? WHERE id = 1;
 **Goal**: Contracts for summaries, reactive detail, and the persisted selection.
 **Files**: `domain/repository/RouteRepository.kt` (edit, FR-02), `domain/repository/AppPreferencesRepository.kt` (new)
 
-Add to `RouteRepository` (additive — do not remove existing methods):
+Add to `RouteRepository` (additive - do not remove existing methods):
 ```kotlin
 import com.example.ta33.domain.model.RouteSummary
 import kotlinx.coroutines.flow.Flow
@@ -225,7 +225,7 @@ interface AppPreferencesRepository {
 **Goal**: SQLDelight-backed reactive reads + selection persistence.
 **Files**: `data/repository/RouteRepositoryImpl.kt` (edit, FR-02), `data/mapper/Mappers.kt` (edit, FR-02), `data/repository/AppPreferencesRepositoryImpl.kt` (new)
 
-`RouteRepositoryImpl` (uses the exact generated accessor names — verify after build):
+`RouteRepositoryImpl` (uses the exact generated accessor names - verify after build):
 ```kotlin
 override fun observeRouteSummaries(): Flow<List<RouteSummary>> =
     routeQueries.selectRouteSummaries().asFlow().mapToList(Dispatchers.Default)
@@ -285,7 +285,7 @@ class ObserveRouteDetailUseCase(private val routes: RouteRepository) {
 }
 ```
 ```kotlin
-// ObserveSelectedRouteUseCase.kt  — validated persisted selection (for the "selected" marker)
+// ObserveSelectedRouteUseCase.kt  - validated persisted selection (for the "selected" marker)
 class ObserveSelectedRouteUseCase(
     private val routes: RouteRepository,
     private val prefs: AppPreferencesRepository,
@@ -408,11 +408,11 @@ fun routeDetailViewModel(): RouteDetailViewModel = KoinPlatform.getKoin().get()
 
 ---
 
-### Step 8: Coordinated FR-01 seam (Seam D) — prefer the persisted selection
+### Step 8: Coordinated FR-01 seam (Seam D) - prefer the persisted selection
 **Goal**: FR-01's `activeRouteId` honours the explicit choice via the shared resolver.
 **Files**: `presentation/navigation/AppStateReducer.kt` (FR-01), `presentation/AppViewModel.kt` (FR-01)
 
-- `AppViewModel` adds `appPreferencesRepository.observeSelectedRouteId()` to its `combine(...)` (alongside `observeRoutes`, `observeActiveRun`, and — if FR-11 merged — `observePreparationState`). Inject `AppPreferencesRepository`.
+- `AppViewModel` adds `appPreferencesRepository.observeSelectedRouteId()` to its `combine(...)` (alongside `observeRoutes`, `observeActiveRun`, and - if FR-11 merged - `observePreparationState`). Inject `AppPreferencesRepository`.
 - `AppStateReducer.reduce(routes, activeRun, selectedRouteId, /*prep if FR-11*/, resolver)` replaces the interim derivation:
 ```kotlin
 // before (FR-01): val activeRouteId = activeRun?.routeId ?: routes.singleOrNull()?.id
@@ -422,7 +422,7 @@ val activeRouteId = ActiveRouteResolver.resolve(
     availableRouteIds = routes.map { it.id },
 )
 ```
-> Additive, single-site change (mirrors how FR-01 added `observeActiveRun` and FR-11 added `observePreparationState`). If FR-01 is unmerged, fold this into FR-01. `combine` arity: routes + activeRun + selection (+ prep) = 3–4 sources — within `combine`'s typed overloads.
+> Additive, single-site change (mirrors how FR-01 added `observeActiveRun` and FR-11 added `observePreparationState`). If FR-01 is unmerged, fold this into FR-01. `combine` arity: routes + activeRun + selection (+ prep) = 3-4 sources - within `combine`'s typed overloads.
 
 **Done when**: FR-01 tests updated to feed a fake `AppPreferencesRepository`; `activeRouteId` assertions pass for run / selection / single / ambiguous cases.
 
@@ -432,13 +432,13 @@ val activeRouteId = ActiveRouteResolver.resolve(
 **Goal**: Lock the FR-03 logic. Prefer fakes over a real DB driver (mirrors FR-02/FR-01).
 **Files**: under `shared/src/commonTest/kotlin/com/example/ta33/`
 
-- **`ActiveRouteResolverTest`** — `run wins`; `selection used when available`; `stale selection ignored → sole route / null`; `single route auto-selected`; `two routes, no run/selection → null`.
-- **`ObserveRouteDetailUseCaseTest`** — fake `RouteRepository` emitting a `Route` with shuffled-ordinal controls → detail controls sorted by `ordinal`; unknown route → `null`.
-- **`ObserveSelectedRouteUseCaseTest`** — persisted id present + route available → that id; persisted id for a removed route → resolver falls back; no persisted id + single route → that route.
-- **`SelectActiveRouteUseCaseTest`** — known route → `Selected` + fake prefs received `setSelectedRouteId(id)`; unknown route → `UnknownRoute` + prefs untouched.
-- **`RouteSummaryMappingTest`** — a route with 0 controls → `controlCount == 0`; `COUNT` `Long`→`Int` mapping; ordering by name (repo-level fake or a small mapping unit).
-- **`RouteListViewModelTest`** — `runTest` + `Dispatchers.setMain(StandardTestDispatcher())`: emits summaries + `selectedRouteId`; `selectRoute(id)` invokes the use-case (fake asserts persistence).
-- **`RouteDetailViewModelTest`** — `bind(id)` emits `detail` with `isActive` true when selection matches; unknown id → `notFound`; `makeActive()` persists.
+- **`ActiveRouteResolverTest`** - `run wins`; `selection used when available`; `stale selection ignored → sole route / null`; `single route auto-selected`; `two routes, no run/selection → null`.
+- **`ObserveRouteDetailUseCaseTest`** - fake `RouteRepository` emitting a `Route` with shuffled-ordinal controls → detail controls sorted by `ordinal`; unknown route → `null`.
+- **`ObserveSelectedRouteUseCaseTest`** - persisted id present + route available → that id; persisted id for a removed route → resolver falls back; no persisted id + single route → that route.
+- **`SelectActiveRouteUseCaseTest`** - known route → `Selected` + fake prefs received `setSelectedRouteId(id)`; unknown route → `UnknownRoute` + prefs untouched.
+- **`RouteSummaryMappingTest`** - a route with 0 controls → `controlCount == 0`; `COUNT` `Long`→`Int` mapping; ordering by name (repo-level fake or a small mapping unit).
+- **`RouteListViewModelTest`** - `runTest` + `Dispatchers.setMain(StandardTestDispatcher())`: emits summaries + `selectedRouteId`; `selectRoute(id)` invokes the use-case (fake asserts persistence).
+- **`RouteDetailViewModelTest`** - `bind(id)` emits `detail` with `isActive` true when selection matches; unknown id → `notFound`; `makeActive()` persists.
 
 Use fakes (`FakeRouteRepository` backed by `MutableStateFlow`, `FakeAppPreferencesRepository` backed by `MutableStateFlow<String?>`). `Dispatchers.setMain`/`resetMain` around VM tests; pure resolver/use-case tests need no dispatcher.
 
@@ -466,7 +466,7 @@ Use fakes (`FakeRouteRepository` backed by `MutableStateFlow`, `FakeAppPreferenc
 ## 6. SECURITY CONSIDERATIONS
 
 - **Input validation**: `routeId` originates from app content / the `Destination.RouteDetail` nav arg (FR-01), not free user input; `SelectActiveRoute` still validates existence before persisting. Content field validity (coords, distance) is FR-11's ingest responsibility.
-- **Auth/Access control**: None in Etapa 1 — anonymous local participant; no tokens (Etapa 2, Keystore/Keychain per stack §4).
+- **Auth/Access control**: None in Etapa 1 - anonymous local participant; no tokens (Etapa 2, Keystore/Keychain per stack §4).
 - **Sensitive data**: Route/control coordinates and the selected-route id stay **on-device** (SQLDelight, app-private). No upload, no PII.
 - **Logging**: Napier at debug for selection changes / route ids; do not log full control coordinate lists at info level; never log to persistent files.
 
@@ -476,15 +476,15 @@ Use fakes (`FakeRouteRepository` backed by `MutableStateFlow`, `FakeAppPreferenc
 
 > User opted out of clarification (`skip questions` / `proceed directly`). Accepted defaults recorded here.
 
-1. **FR-02 is implemented first** — its `Route`/`ControlPoint`/`GeoPoint` models, `RouteRepository` (incl. `getRouteWithControls`, `selectRouteById`, `selectControlsForRoute`), `Ta33Database`, mappers, and `appModule` exist and are **referenced**. If wrong: FR-03 cannot compile; do FR-02 first.
-2. **Route length is the stored `distanceKm`** from the content JSON (organizer-supplied via FR-11), not computed. If a computed distance is ever required, add it as a separate field — do not overwrite the official value.
-3. **The `RouteRepository` seams (A + B) are additive** — new methods only, no change to existing signatures. RouteSummary lives in `domain/model` and is referenced by the interface. If wrong: coordinate with the FR-02 owner.
+1. **FR-02 is implemented first** - its `Route`/`ControlPoint`/`GeoPoint` models, `RouteRepository` (incl. `getRouteWithControls`, `selectRouteById`, `selectControlsForRoute`), `Ta33Database`, mappers, and `appModule` exist and are **referenced**. If wrong: FR-03 cannot compile; do FR-02 first.
+2. **Route length is the stored `distanceKm`** from the content JSON (organizer-supplied via FR-11), not computed. If a computed distance is ever required, add it as a separate field - do not overwrite the official value.
+3. **The `RouteRepository` seams (A + B) are additive** - new methods only, no change to existing signatures. RouteSummary lives in `domain/model` and is referenced by the interface. If wrong: coordinate with the FR-02 owner.
 4. **Persisted selection lives in a new `AppPreferences` single-row table** (FR-03-owned), not in FR-11's `Preparation` and not via a new `multiplatform-settings` dependency. Impact if wrong: swapping the persistence backend is a localized change behind `AppPreferencesRepository`.
 5. **Seam D (FR-01 coordination) is a single additive site** using `ActiveRouteResolver`. If FR-01 is unmerged, fold it into FR-01. Impact: `activeRouteId` derivation gains a preferred source; no model change.
-6. **The label "Trasa A · 33 km · 5 kontrol" is UI/localization** (Czech plurals) — deferred; the domain exposes raw fields only.
+6. **The label "Trasa A · 33 km · 5 kontrol" is UI/localization** (Czech plurals) - deferred; the domain exposes raw fields only.
 7. **`ObserveRouteDetail` is reactive** (Seam B). If reactivity proves unnecessary, it can degrade to a one-shot `getRouteWithControls` in the VM with no contract change to the use-case's callers.
-8. **One user-selected route at a time** (single-row `AppPreferences`) — matches FR-02's "one active run" assumption and the single-event use case.
-9. **Only Android + iOS targets** — `Dispatchers.Default` + native/android SQLDelight drivers suffice; no new dependencies.
+8. **One user-selected route at a time** (single-row `AppPreferences`) - matches FR-02's "one active run" assumption and the single-event use case.
+9. **Only Android + iOS targets** - `Dispatchers.Default` + native/android SQLDelight drivers suffice; no new dependencies.
 
 > Open questions live in Section 12.
 
@@ -493,13 +493,13 @@ Use fakes (`FakeRouteRepository` backed by `MutableStateFlow`, `FakeAppPreferenc
 ## 8. QUICK REFERENCE
 
 ### Files to Modify
-- `shared/src/commonMain/sqldelight/com/example/ta33/data/db/Route.sq` — add `selectRouteSummaries` (Seam A).
-- `shared/src/commonMain/kotlin/com/example/ta33/domain/repository/RouteRepository.kt` — add `observeRouteSummaries` + `observeRouteWithControls` (FR-02).
-- `shared/src/commonMain/kotlin/com/example/ta33/data/repository/RouteRepositoryImpl.kt` — implement Seams A + B (FR-02).
-- `shared/src/commonMain/kotlin/com/example/ta33/data/mapper/Mappers.kt` — summary-row → `RouteSummary` (if a mapper is preferred over inline).
-- `shared/src/commonMain/kotlin/com/example/ta33/di/AppModule.kt` — register repo, use-cases, ViewModels.
-- `shared/src/commonMain/kotlin/com/example/ta33/di/Koin.kt` — add `routeListViewModel()` / `routeDetailViewModel()`.
-- **(Seam D, FR-01)** `presentation/navigation/AppStateReducer.kt` + `presentation/AppViewModel.kt` — read `observeSelectedRouteId()`, derive via `ActiveRouteResolver`.
+- `shared/src/commonMain/sqldelight/com/example/ta33/data/db/Route.sq` - add `selectRouteSummaries` (Seam A).
+- `shared/src/commonMain/kotlin/com/example/ta33/domain/repository/RouteRepository.kt` - add `observeRouteSummaries` + `observeRouteWithControls` (FR-02).
+- `shared/src/commonMain/kotlin/com/example/ta33/data/repository/RouteRepositoryImpl.kt` - implement Seams A + B (FR-02).
+- `shared/src/commonMain/kotlin/com/example/ta33/data/mapper/Mappers.kt` - summary-row → `RouteSummary` (if a mapper is preferred over inline).
+- `shared/src/commonMain/kotlin/com/example/ta33/di/AppModule.kt` - register repo, use-cases, ViewModels.
+- `shared/src/commonMain/kotlin/com/example/ta33/di/Koin.kt` - add `routeListViewModel()` / `routeDetailViewModel()`.
+- **(Seam D, FR-01)** `presentation/navigation/AppStateReducer.kt` + `presentation/AppViewModel.kt` - read `observeSelectedRouteId()`, derive via `ActiveRouteResolver`.
 
 ### Files to Create
 - `domain/model/RouteSummary.kt`, `domain/model/RouteDetail.kt`
@@ -509,7 +509,7 @@ Use fakes (`FakeRouteRepository` backed by `MutableStateFlow`, `FakeAppPreferenc
 - `domain/usecase/ObserveRoutesUseCase.kt`, `ObserveRouteDetailUseCase.kt`, `ObserveSelectedRouteUseCase.kt`, `SelectActiveRouteUseCase.kt`
 - `presentation/RouteListViewModel.kt`, `presentation/RouteDetailViewModel.kt`
 - SQLDelight: `AppPreferences.sq`
-- `commonTest/…` — `ActiveRouteResolverTest`, `ObserveRouteDetailUseCaseTest`, `ObserveSelectedRouteUseCaseTest`, `SelectActiveRouteUseCaseTest`, `RouteSummaryMappingTest`, `RouteListViewModelTest`, `RouteDetailViewModelTest` (+ fakes `FakeRouteRepository`, `FakeAppPreferencesRepository`).
+- `commonTest/…` - `ActiveRouteResolverTest`, `ObserveRouteDetailUseCaseTest`, `ObserveSelectedRouteUseCaseTest`, `SelectActiveRouteUseCaseTest`, `RouteSummaryMappingTest`, `RouteListViewModelTest`, `RouteDetailViewModelTest` (+ fakes `FakeRouteRepository`, `FakeAppPreferencesRepository`).
 
 ### Dependencies
 - **None new.** (Already present: SQLDelight 2.1.0 + coroutines-extensions + drivers, Koin 4.1.0, coroutines-core, lifecycle-viewmodel; `kotlinx-coroutines-test` via FR-02.)
@@ -541,26 +541,26 @@ xcodebuild -project iosApp/iosApp.xcodeproj -scheme iosApp -configuration Debug 
 | Approach | Pros | Cons | Selected? |
 |----------|------|------|-----------|
 | **A. Read models + use-cases + StateFlow VMs over FR-02; JOIN+COUNT summary; reactive detail; persisted selection in new `AppPreferences`; shared `ActiveRouteResolver` for the FR-01 seam** | Reuses FR-02 with minimal, enumerated additive seams; reactive + offline-first; single tested active-route rule; no new deps; matches stack §12 | Adds two `RouteRepository` methods + one new table/repo | ✅ |
-| B. **Compute control count / distance on the fly** (eager-load controls in `observeRoutes`, count in Kotlin; distance via Haversine over controls) | No summary query | Wasteful eager loads / N+1; distance from control points is inaccurate (no polyline stored); overrides the organizer's official figure | — |
-| C. **Persist selection via `multiplatform-settings`** (key-value) instead of a DB table | Tiny API; no schema change | New dependency for one value; not reactive by default; diverges from the SQLDelight single-row pattern (FR-11 `Preparation`) | — |
-| D. **One-shot detail** (`RouteDetailViewModel` calls suspend `getRouteWithControls` in `bind`) | No Seam B; simplest | Stale if FR-11 updates content while viewing; inconsistent with the Flow-based core | — (kept as fallback in Assumption 7) |
-| E. **Keep active-route derivation only in FR-01** (FR-03 just persists; FR-01 re-derives inline) | No shared helper | Duplicated validation logic drifts between FR-01 and FR-03 | — (superseded by shared `ActiveRouteResolver`) |
+| B. **Compute control count / distance on the fly** (eager-load controls in `observeRoutes`, count in Kotlin; distance via Haversine over controls) | No summary query | Wasteful eager loads / N+1; distance from control points is inaccurate (no polyline stored); overrides the organizer's official figure | - |
+| C. **Persist selection via `multiplatform-settings`** (key-value) instead of a DB table | Tiny API; no schema change | New dependency for one value; not reactive by default; diverges from the SQLDelight single-row pattern (FR-11 `Preparation`) | - |
+| D. **One-shot detail** (`RouteDetailViewModel` calls suspend `getRouteWithControls` in `bind`) | No Seam B; simplest | Stale if FR-11 updates content while viewing; inconsistent with the Flow-based core | - (kept as fallback in Assumption 7) |
+| E. **Keep active-route derivation only in FR-01** (FR-03 just persists; FR-01 re-derives inline) | No shared helper | Duplicated validation logic drifts between FR-01 and FR-03 | - (superseded by shared `ActiveRouteResolver`) |
 
 **Why the selected approach won**: It delivers the route list, detail, and a durable choice with the smallest, clearly-flagged set of additive seams over FR-02/FR-01, stays fully reactive and unit-testable in shared Kotlin with zero new dependencies, and honours the organizer-supplied distance instead of fabricating one.
 
 ### 12.2 Open Questions
 
-- [ ] **Should the FR-03 "selected" marker be run-aware (like FR-01's effective active route)?** — Proposed direction: no — FR-03 marks the persisted *selection* (run-agnostic) to avoid `RunRepository` coupling; FR-01 owns the run-aware effective `activeRouteId`. Revisit if the route list must visibly reflect an in-progress run.
-- [ ] **Do multiple routes actually ship for the 2026 event, or just "Trasa A"?** — Proposed direction: support N routes (list already does); if it's always one, the sole-route fallback in `ActiveRouteResolver` makes selection a no-op. Confirm with the organizer's content.
-- [ ] **Does FR-04 (deník) need a route-scoped ordered-controls accessor beyond `RouteDetail.controls`?** — Proposed direction: FR-04 reuses `observeRouteWithControls` / `ObserveRouteDetail` for the ordered controls and layers collection state on top; no extra FR-03 seam expected.
-- [ ] **Auto-select the sole route on first content download?** — Proposed direction: leave it implicit via the resolver's `singleOrNull` fallback (no write); persist an explicit selection only on user action, so a later content change can still re-resolve.
+- [ ] **Should the FR-03 "selected" marker be run-aware (like FR-01's effective active route)?** - Proposed direction: no - FR-03 marks the persisted *selection* (run-agnostic) to avoid `RunRepository` coupling; FR-01 owns the run-aware effective `activeRouteId`. Revisit if the route list must visibly reflect an in-progress run.
+- [ ] **Do multiple routes actually ship for the 2026 event, or just "Trasa A"?** - Proposed direction: support N routes (list already does); if it's always one, the sole-route fallback in `ActiveRouteResolver` makes selection a no-op. Confirm with the organizer's content.
+- [ ] **Does FR-04 (deník) need a route-scoped ordered-controls accessor beyond `RouteDetail.controls`?** - Proposed direction: FR-04 reuses `observeRouteWithControls` / `ObserveRouteDetail` for the ordered controls and layers collection state on top; no extra FR-03 seam expected.
+- [ ] **Auto-select the sole route on first content download?** - Proposed direction: leave it implicit via the resolver's `singleOrNull` fallback (no write); persist an explicit selection only on user action, so a later content change can still re-resolve.
 
 ### 12.3 Suggestions & Follow-ups
 
-- When **FR-04** lands, build the deník log by combining `ObserveRouteDetail` (ordered controls) with the FR-02 run/collection Flows — the ordered-controls seam is already here.
+- When **FR-04** lands, build the deník log by combining `ObserveRouteDetail` (ordered controls) with the FR-02 run/collection Flows - the ordered-controls seam is already here.
 - When **FR-06/FR-07** land, feed the map/tile layer and the mapy.cz deep link from `RouteDetail.controls` + the route's stored geometry (add a polyline field to content/FR-02 then, if geometry is delivered).
-- Add a **JVM SQLite driver** in `androidHostTest` to integration-test `selectRouteSummaries` (JOIN+COUNT) and `AppPreferences` against a real DB — good coverage, out of scope here.
-- Extend `AppPreferencesRepository` for **FR-10** settings (notifications toggle, etc.) — the single-row table is the natural home.
+- Add a **JVM SQLite driver** in `androidHostTest` to integration-test `selectRouteSummaries` (JOIN+COUNT) and `AppPreferences` against a real DB - good coverage, out of scope here.
+- Extend `AppPreferencesRepository` for **FR-10** settings (notifications toggle, etc.) - the single-row table is the natural home.
 - Add a Koin **`checkModules()`** test spanning FR-01/02/03/11 to catch DI-graph breakage early.
 
-> Sections 9 (Design Reference) and 10 (Corrections From Current State) intentionally omitted: this is logic-only work with no UI/visual spec, and it is greenfield (no prior FR-03 implementation to correct — the FR-01/FR-02 touches are additive coordinated seams covered in Steps 2–4 & 8).
+> Sections 9 (Design Reference) and 10 (Corrections From Current State) intentionally omitted: this is logic-only work with no UI/visual spec, and it is greenfield (no prior FR-03 implementation to correct - the FR-01/FR-02 touches are additive coordinated seams covered in Steps 2-4 & 8).

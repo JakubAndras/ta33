@@ -32,7 +32,7 @@ final class ScanFlowModel: ObservableObject {
         isCollecting: false,
         lastResult: nil
     )
-    /// Zamražený snímek posledního úspěšného sběru — Splnění se z něj vykresluje, takže je imunní
+    /// Zamražený snímek posledního úspěšného sběru - Splnění se z něj vykresluje, takže je imunní
     /// vůči tomu, že VM po sběru překlopí `candidate` na nil / nabídne mezitím jinou kontrolu.
     @Published var lastCollected: CollectedSnapshot?
 

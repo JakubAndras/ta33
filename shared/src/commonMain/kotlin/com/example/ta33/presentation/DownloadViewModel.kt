@@ -70,7 +70,7 @@ class DownloadViewModel(
         job?.cancel()
         job = null
         // A cancelled download flow stops emitting, so without this the UI would stay stuck on
-        // DOWNLOADING after a manual/auto pause. Only downgrade an in-flight download — never
+        // DOWNLOADING after a manual/auto pause. Only downgrade an in-flight download - never
         // clobber a terminal DONE/ERROR or an IDLE/PAUSED state.
         _state.update {
             if (it.progress.overallStatus == DownloadStatus.DOWNLOADING) {

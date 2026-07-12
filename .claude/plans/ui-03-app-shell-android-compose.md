@@ -1,4 +1,4 @@
-# UI-03 — App Shell (Android Compose)
+# UI-03 - App Shell (Android Compose)
 
 > **Summary**: Nativní Android tabbed shell (Deník / Mapa / Přehled) s Material-idiomatic plovoucím bottom navem + scan FAB, splash gate a hostováním hotového `DenikScreen`; Mapa/Přehled zatím stub.
 
@@ -7,7 +7,7 @@
 ## 1. PROBLEM & SOLUTION
 
 ### 1.1 Problem Statement
-`App()` teď zobrazuje přímo `DenikScreen` — chybí navigační skořápka. Aplikace potřebuje tři taby (Deník / Mapa / Přehled) s nativním bottom navem, scan tlačítko a splash při startu, aby byla reálně použitelná.
+`App()` teď zobrazuje přímo `DenikScreen` - chybí navigační skořápka. Aplikace potřebuje tři taby (Deník / Mapa / Přehled) s nativním bottom navem, scan tlačítko a splash při startu, aby byla reálně použitelná.
 
 ### 1.2 Solution Overview
 Zavedeme `Ta33App` (Compose): odebírá `AppViewModel.state` a podle `readiness` ukáže splash (LOADING) nebo tabbed shell (`Scaffold` + plovoucí pill bottom nav dle design systému + volitelný scan FAB). Obsah tabu se přepíná stavově (`TopLevelDestination`): Deník = `DenikScreen` (hotový), Mapa/Přehled = stub placeholdery. Scan FAB (jen když běží běh) vyvolá hoisted callback (scan UI je FR-09, zatím stub). `Preparation`/`RunActive` stavy zatím jednoduché placeholdery (obrazovky se staví později).
@@ -20,11 +20,11 @@ Zavedeme `Ta33App` (Compose): odebírá `AppViewModel.state` a podle `readiness`
 - Napojení `App()` → `Ta33App()`.
 
 ### 1.4 Scope: What This IS NOT
-- **iOS** shell — samostatný plán (ui-04), nativní `TabView`/liquid-glass.
-- Reálné obrazovky **Mapa** a **Přehled/Profil** — jen stub; samostatné plány.
-- **Scan / Splnění** obrazovky (FR-09/08 UI) — FAB jen vyvolá stub callback.
-- **Preparation** obrazovka (FR-11 UI) a **RouteDetail/RunActive** obrazovky — jen jednoduché placeholder větve.
-- Compose Navigation knihovna / detail routes s back-stackem — zatím stavové přepínání tabů (viz §12).
+- **iOS** shell - samostatný plán (ui-04), nativní `TabView`/liquid-glass.
+- Reálné obrazovky **Mapa** a **Přehled/Profil** - jen stub; samostatné plány.
+- **Scan / Splnění** obrazovky (FR-09/08 UI) - FAB jen vyvolá stub callback.
+- **Preparation** obrazovka (FR-11 UI) a **RouteDetail/RunActive** obrazovky - jen jednoduché placeholder větve.
+- Compose Navigation knihovna / detail routes s back-stackem - zatím stavové přepínání tabů (viz §12).
 
 ---
 
@@ -38,7 +38,7 @@ Zavedeme `Ta33App` (Compose): odebírá `AppViewModel.state` a podle `readiness`
 | 4 | Bottom nav přepíná Deník/Mapa/Přehled; aktivní tab je zvýrazněný (slate-800) | běh / preview |
 | 5 | Mapa a Přehled ukazují stub placeholder (bez pádu) | běh |
 | 6 | Scan FAB je vidět jen když je aktivní běh (`activeRunId != null`); klik vyvolá callback | preview obou variant |
-| 7 | Žádný hardcoded hex/dp v UI — vše přes theme | code review |
+| 7 | Žádný hardcoded hex/dp v UI - vše přes theme | code review |
 | 8 | Cream pozadí, safe-area insety (edge-to-edge) v pořádku | běh / preview |
 
 ---
@@ -80,16 +80,16 @@ App() → Ta33Theme { Ta33App() }
 
 ### Step 1: Splash + stub + preparation placeholder
 **Files**: `ui/shell/Placeholders.kt` (create)
-- `SplashView()` — vycentrované „TA33" (display1) + `CircularProgressIndicator` na cream.
-- `StubScreen(title: String)` — cream pozadí, centrovaný `Overline(title)` + text „Připravujeme".
-- `PreparationPlaceholder()` — stub s textem „Příprava dat akce" (FR-11 UI později).
+- `SplashView()` - vycentrované „TA33" (display1) + `CircularProgressIndicator` na cream.
+- `StubScreen(title: String)` - cream pozadí, centrovaný `Overline(title)` + text „Připravujeme".
+- `PreparationPlaceholder()` - stub s textem „Příprava dat akce" (FR-11 UI později).
 
 **Done when**: kompiluje, každý má `@Preview`.
 
 ### Step 2: Bottom nav (plovoucí pill) + scan FAB
 **Files**: `ui/shell/Ta33BottomNav.kt` (create)
-- `Ta33BottomNav(selected: TopLevelDestination, onSelect: (TopLevelDestination) -> Unit)` — plovoucí bílý pill (`shadow-pop`, radius pill, 16dp boční okraj), tři položky: Deník (`book-text`), Mapa (`map`), Přehled (`user`); aktivní = slate-800 bg + bílá, ostatní `fgMuted`. Ikony viz Deník `ui/components/Icons.kt` (doplnit `map`, `book-text`/`user` pokud chybí).
-- `ScanFab(onClick)` — kruhový 60dp orange FAB s glow, ikona `scan`, `fgOnOrange`.
+- `Ta33BottomNav(selected: TopLevelDestination, onSelect: (TopLevelDestination) -> Unit)` - plovoucí bílý pill (`shadow-pop`, radius pill, 16dp boční okraj), tři položky: Deník (`book-text`), Mapa (`map`), Přehled (`user`); aktivní = slate-800 bg + bílá, ostatní `fgMuted`. Ikony viz Deník `ui/components/Icons.kt` (doplnit `map`, `book-text`/`user` pokud chybí).
+- `ScanFab(onClick)` - kruhový 60dp orange FAB s glow, ikona `scan`, `fgOnOrange`.
 
 **Done when**: `@Preview` navu (aktivní každý tab) + FAB.
 
@@ -133,7 +133,7 @@ fun Ta33App(appViewModel: AppViewModel = koinViewModel()) {
 ```
 `App() { Ta33Theme { Ta33App() } }`.
 
-> Pozn.: `DenikScreen` má vlastní gate (NOT_READY→DenikBefore). V shellu READY větev hostí Deník; NOT_READY/PREPARING řeší shell přes `PreparationPlaceholder`. Zvážit, ať se logika nepřekrývá — v shellu je Deník pod READY, takže DenikBefore se ukáže jen když je app READY ale obsah přesto chybí (edge). Ponechat, není konflikt.
+> Pozn.: `DenikScreen` má vlastní gate (NOT_READY→DenikBefore). V shellu READY větev hostí Deník; NOT_READY/PREPARING řeší shell přes `PreparationPlaceholder`. Zvážit, ať se logika nepřekrývá - v shellu je Deník pod READY, takže DenikBefore se ukáže jen když je app READY ale obsah přesto chybí (edge). Ponechat, není konflikt.
 
 **Done when**: app se spustí, ukáže splash → shell.
 
@@ -155,17 +155,17 @@ fun Ta33App(appViewModel: AppViewModel = koinViewModel()) {
 - N/A (jen navigace/zobrazení). Žádná citlivá data v shellu.
 
 ## 7. ASSUMPTIONS
-1. **Taby nepotřebují Compose Navigation** — stavové přepínání stačí; detail routes (RouteDetail/scan) přijdou s Compose Navigation později.
-2. **Scan a Preparation jsou stub** — skutečné obrazovky jsou jiné plány; shell drží jen vstupní body.
+1. **Taby nepotřebují Compose Navigation** - stavové přepínání stačí; detail routes (RouteDetail/scan) přijdou s Compose Navigation později.
+2. **Scan a Preparation jsou stub** - skutečné obrazovky jsou jiné plány; shell drží jen vstupní body.
 3. **`TopLevelDestination` (DENIK/MAPA/PREHLED)** je zdroj tabů (FR-01). „Přehled" = Profil dle design systému.
-4. **Ikony `map`/`book-text`/`user`/`scan`** — doplnit do `ui/components/Icons.kt`, pokud chybí (Step 2).
+4. **Ikony `map`/`book-text`/`user`/`scan`** - doplnit do `ui/components/Icons.kt`, pokud chybí (Step 2).
 
 ## 8. QUICK REFERENCE
 ### Files to Create
 - `ui/shell/{Placeholders,Ta33BottomNav,MainShell,Ta33App}.kt`
 ### Files to Modify
 - `App.kt` → `Ta33App()`
-- `ui/components/Icons.kt` — doplnit chybějící ikony
+- `ui/components/Icons.kt` - doplnit chybějící ikony
 ### Commands
 ```bash
 ./gradlew :androidApp:assembleDebug
@@ -200,12 +200,12 @@ fun Ta33App(appViewModel: AppViewModel = koinViewModel()) {
 | Approach | Pros | Cons | Selected? |
 |---|---|---|---|
 | **A. Stavové taby + plovoucí pill (design)** | Bez závislosti, design fidelity | Detail routes potřebují dořešit později | ✅ |
-| B. Material3 `NavigationBar` v `Scaffold.bottomBar` | Nejvíc „stock" Material | Neodpovídá plovoucímu pillu z designu | — |
-| C. Compose Navigation (navigation-compose) hned | Připraveno na detail routes/back-stack | Nová závislost, víc složitosti pro 3 taby | — |
+| B. Material3 `NavigationBar` v `Scaffold.bottomBar` | Nejvíc „stock" Material | Neodpovídá plovoucímu pillu z designu | - |
+| C. Compose Navigation (navigation-compose) hned | Připraveno na detail routes/back-stack | Nová závislost, víc složitosti pro 3 taby | - |
 ### 12.2 Open Questions
-- [ ] **Compose Navigation kdy?** — Proposed: přidat, až přijdou detail routes (RouteDetail, scan flow); pro 3 taby netřeba.
-- [ ] **Scan FAB viditelnost** — Proposed: jen při aktivním běhu; potvrdit až s FR-09 scan flow.
+- [ ] **Compose Navigation kdy?** - Proposed: přidat, až přijdou detail routes (RouteDetail, scan flow); pro 3 taby netřeba.
+- [ ] **Scan FAB viditelnost** - Proposed: jen při aktivním běhu; potvrdit až s FR-09 scan flow.
 ### 12.3 Suggestions & Follow-ups
-- iOS app-shell (ui-04) — nativní TabView / liquid-glass.
+- iOS app-shell (ui-04) - nativní TabView / liquid-glass.
 - Obrazovky Mapa (MapViewModel + MapLibre) a Přehled/Profil (OverviewViewModel/SettingsViewModel) nahradí stuby.
 - Preparation obrazovka (FR-11 UI) + scan flow (FR-09 UI) + Compose Navigation pro detail routes.

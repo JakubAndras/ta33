@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.scan
 
 class ObserveCollectionCandidateUseCase(
-    private val locationStream: LocationStream,   // FR-05 — REUSED shared stream, no new provider
+    private val locationStream: LocationStream,   // FR-05 - REUSED shared stream, no new provider
     private val routes: RouteRepository,          // FR-03 observeRouteWithControls
     private val runs: RunRepository,              // FR-02 observeCollected / observeRun
     private val evaluator: ProximityEvaluator,

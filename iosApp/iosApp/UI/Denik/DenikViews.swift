@@ -3,7 +3,7 @@ import Shared
 
 /// Na iOS 26 plovoucí Liquid Glass lišta nezmenšuje safe area (obsah jde edge-to-edge pod ni).
 /// `contentMargins` přidá scroll obsahu spodní clearance, aby šla **poslední kontrola (cíl)
-/// doscrollovat nad lištu** a nezůstala schovaná za sklem — všechny kontroly na trase zůstávají
+/// doscrollovat nad lištu** a nezůstala schovaná za sklem - všechny kontroly na trase zůstávají
 /// viditelné a scrollovatelné. iOS 18 lišta je neprůhledná a ukotvená, safe area řeší systém.
 private struct GlassTabBarClearance: ViewModifier {
     func body(content: Content) -> some View {

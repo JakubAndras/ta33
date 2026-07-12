@@ -3,7 +3,7 @@ package com.example.ta33.data.location
 import platform.CoreLocation.CLLocationManager
 
 /** Enables CoreLocation background updates (requires UIBackgroundModes = [location] in Info.plist).
- *  ⚠️ FIELD-TEST REQUIRED ("ověřit v terénu, baterie") — validate on real devices over a long route. */
+ *  ⚠️ FIELD-TEST REQUIRED ("ověřit v terénu, baterie") - validate on real devices over a long route. */
 class IosLocationTrackingController : LocationTrackingController {
 
     private val manager = CLLocationManager()

@@ -5,7 +5,7 @@ import android.content.Intent
 import android.os.Build
 
 /** Starts/stops [LocationForegroundService] so recording survives screen-off / background.
- *  ⚠️ FIELD-TEST REQUIRED ("ověřit v terénu, baterie") — OEM battery savers may still interrupt. */
+ *  ⚠️ FIELD-TEST REQUIRED ("ověřit v terénu, baterie") - OEM battery savers may still interrupt. */
 class AndroidLocationTrackingController(private val context: Context) : LocationTrackingController {
 
     private var tracking = false

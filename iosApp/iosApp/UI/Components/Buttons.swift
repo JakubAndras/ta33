@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Primární CTA — orange pill, full-width, UPPER text s teplým glow. Zrcadlí Android `PrimaryButton`.
+/// Primární CTA - orange pill, full-width, UPPER text s teplým glow. Zrcadlí Android `PrimaryButton`.
 struct PrimaryButton: View {
     let title: String
     let action: () -> Void
@@ -24,7 +24,7 @@ struct PrimaryButton: View {
     }
 }
 
-/// Sekundární akce — orange 2px obrys, transparentní výplň. Zrcadlí Android `OutlineButton`.
+/// Sekundární akce - orange 2px obrys, transparentní výplň. Zrcadlí Android `OutlineButton`.
 struct OutlineButton: View {
     let title: String
     let action: () -> Void

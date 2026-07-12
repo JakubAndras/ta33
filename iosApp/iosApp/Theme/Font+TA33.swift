@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// TA33 typografická škála — zrcadlí `Ta33Type` na Androidu.
+/// TA33 typografická škála - zrcadlí `Ta33Type` na Androidu.
 ///
 /// TODO(fonty): design používá **Big Shoulders Display** (display/button) a **Inter** (body).
 /// Zatím systémový fallback přes `.system`. Po přidání TTF do bundlu (+ `UIAppFonts` v Info.plist)

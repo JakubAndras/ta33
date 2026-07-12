@@ -3,7 +3,7 @@ package com.example.ta33.ui.theme
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.unit.dp
 
-/** Spacing scale — 4px base (TA33 Design System). */
+/** Spacing scale - 4px base (TA33 Design System). */
 object Ta33Spacing {
     val none = 0.dp
     val x1 = 4.dp
@@ -18,7 +18,7 @@ object Ta33Spacing {
     val x10 = 72.dp
 }
 
-/** Corner radii — bouldery, friendly (TA33 Design System). */
+/** Corner radii - bouldery, friendly (TA33 Design System). */
 object Ta33Radius {
     val xs = RoundedCornerShape(6.dp)
     val sm = RoundedCornerShape(10.dp)

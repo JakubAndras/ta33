@@ -1,4 +1,4 @@
-# DEV Sandbox — Přepínače stavů appky na obrazovce Profil (iOS + Android, DEBUG only)
+# DEV Sandbox - Přepínače stavů appky na obrazovce Profil (iOS + Android, DEBUG only)
 
 > **Summary**: Přidat na konec Profilu DEBUG-only sekci „Sandbox" se 4 přepínači (Zaplaceno, Aktivní běh, Data/mapa stažena, Běh dokončen), které přes sdílený `SandboxViewModel` a repozitáře reálně mění stav, ve kterém aplikace běží.
 
@@ -7,10 +7,10 @@
 ## 1. PROBLEM & SOLUTION
 
 ### 1.1 Problem Statement
-Pro vývoj a testování je potřeba rychle přepínat aplikaci mezi stavy, ve kterých může být (zaplaceno/ne, data stažena/ne, před akcí / na trase / dokončeno) bez ruční manipulace s DB nebo čekání na reálné flow (stažení, sken start/cíl). Dnes to jde jen přes `DevSeed` při startu nebo reálné akce — nelze to za běhu přepínat z UI.
+Pro vývoj a testování je potřeba rychle přepínat aplikaci mezi stavy, ve kterých může být (zaplaceno/ne, data stažena/ne, před akcí / na trase / dokončeno) bez ruční manipulace s DB nebo čekání na reálné flow (stažení, sken start/cíl). Dnes to jde jen přes `DevSeed` při startu nebo reálné akce - nelze to za běhu přepínat z UI.
 
 ### 1.2 Solution Overview
-Na konec Profilu (iOS SwiftUI + Android Compose, **jen v DEBUG**) přidáme sekci „Sandbox" se 4 přepínači. Přepínače volají nový sdílený `SandboxViewModel`, který přes rozšířené repozitáře (nové aditivní metody: delete běhu, un-finish, reset přípravy, clear tras) a znovupoužité seedování z `RouteCatalog` reálně mění stav — takže se okamžitě projeví v celé appce (gate Příprava, scan kapsle, obsah Deníku, Profil sekce).
+Na konec Profilu (iOS SwiftUI + Android Compose, **jen v DEBUG**) přidáme sekci „Sandbox" se 4 přepínači. Přepínače volají nový sdílený `SandboxViewModel`, který přes rozšířené repozitáře (nové aditivní metody: delete běhu, un-finish, reset přípravy, clear tras) a znovupoužité seedování z `RouteCatalog` reálně mění stav - takže se okamžitě projeví v celé appce (gate Příprava, scan kapsle, obsah Deníku, Profil sekce).
 
 ### 1.3 Scope: What This IS
 - Sdílený `SandboxViewModel` + `SandboxUiState` (commonMain) se 4 přepínatelnými stavy a akcemi.
@@ -20,9 +20,9 @@ Na konec Profilu (iOS SwiftUI + Android Compose, **jen v DEBUG**) přidáme sekc
 - Napojení „Zaplaceno" na kartu startovního čísla (v DEBUG čte override, v release `ProfileMock.paid`).
 
 ### 1.4 Scope: What This IS NOT
-- **Žádná user-facing funkce** — čistě dev nástroj, v release buildu se sekce nevykreslí ani nezabírá.
-- Žádná reálná platba/identita (Etapa 2) — „Zaplaceno" zůstává vizuální mock flag.
-- Žádné reálné stahování přes síť pro „Data stažena ON" — seedujeme deterministicky z bundled `RouteCatalog` (jako `DevSeed`).
+- **Žádná user-facing funkce** - čistě dev nástroj, v release buildu se sekce nevykreslí ani nezabírá.
+- Žádná reálná platba/identita (Etapa 2) - „Zaplaceno" zůstává vizuální mock flag.
+- Žádné reálné stahování přes síť pro „Data stažena ON" - seedujeme deterministicky z bundled `RouteCatalog` (jako `DevSeed`).
 - Žádná změna produkčního chování `DevSeed` při startu.
 - Žádné nové user-facing stringy v `composeResources` (dev sekce používá lokální DEBUG literály).
 
@@ -67,16 +67,16 @@ Na konec Profilu (iOS SwiftUI + Android Compose, **jen v DEBUG**) přidáme sekc
 
 **Tok:** přepínač → `SandboxViewModel.setX(bool)` (viewModelScope) → volá repo metody / seeder → DB/flow se změní → `ObserveAppStateUseCase`/`AppStateReducer` přepočítá `AppUiState` → celá appka reaguje (Příprava gate, scan kapsle, Deník, Profil). Stavy přepínačů se **odvozují** z týchž flows → self-consistent i při změně jinudy.
 
-### 3.2 Run lifecycle — klíčová provázanost (rozhodnutí)
+### 3.2 Run lifecycle - klíčová provázanost (rozhodnutí)
 
 `selectActiveRun` = `WHERE finishedAtMillis IS NULL` → **dokončený běh není „aktivní"**. Proto:
 - `naTrase` (Aktivní běh) = existuje běh s `finishedAtMillis == null`.
 - `finished` (Hotovo) = poslední běh má `finishedAtMillis != null`.
-- Tyto dva stavy jsou **vzájemně výlučné** (běh je buď na trase, nebo dokončený). „Hotovo ON" tedy nutně přepne „Aktivní běh" na OFF — to je věrné reálnému chování appky a je to **záměr**, ne bug (UI to zobrazí reaktivně).
+- Tyto dva stavy jsou **vzájemně výlučné** (běh je buď na trase, nebo dokončený). „Hotovo ON" tedy nutně přepne „Aktivní běh" na OFF - to je věrné reálnému chování appky a je to **záměr**, ne bug (UI to zobrazí reaktivně).
 
 Aby šel dokončený běh vrátit/smazat, potřebujeme číst **poslední** běh bez ohledu na finished → nový dotaz `selectLatestRun`.
 
-### 3.3 Přepínače — sémantika akcí
+### 3.3 Přepínače - sémantika akcí
 
 | Přepínač | Odvození stavu | ON akce | OFF akce |
 |---|---|---|---|
@@ -142,7 +142,7 @@ DELETE FROM ControlPoint;
 
 ---
 
-### Step 2: Rozšířit repozitáře (interface + impl) — aditivně
+### Step 2: Rozšířit repozitáře (interface + impl) - aditivně
 **Goal**: doménové metody nad novými dotazy.
 **Files**: `domain/repository/{RunRepository,PreparationRepository,RouteRepository}.kt`, `data/repository/{RunRepositoryImpl,PreparationRepositoryImpl,RouteRepositoryImpl}.kt`
 
@@ -251,24 +251,24 @@ class SandboxViewModel(
 
 ---
 
-### Step 6: iOS — `SandboxModel` + DEBUG sekce v `ProfilView`
+### Step 6: iOS - `SandboxModel` + DEBUG sekce v `ProfilView`
 **Goal**: nativní Toggle sekce + napojení „paid".
 **Files**: `iosApp/iosApp/UI/Profil/SandboxModel.swift` (create), `ProfilView.swift`, `ProfilModel.swift` (paid override čtení)
 
 - `SandboxModel: ObservableObject` (jako `ScanFlowModel`): drží `@Published var state: SandboxUiState`, `observe()` čte `viewModel.state` (SKIE async), akce delegují na `ViewModelProvider.shared.sandboxViewModel()`.
-- `ProfilView`: `#if DEBUG` přidat jako **poslední** `Section("Sandbox")` s `Toggle`y (Zaplaceno, Aktivní běh, Data / mapa stažena, Běh dokončen — poslední `.disabled(!state.runExists)`), `.tint(Ta33Color.orange)`. `Toggle(isOn: Binding(get: { state.x }, set: { model.setX($0) }))`.
-- Karta startovního čísla: `let paid = { #if DEBUG return sandbox.state.paid #else return ProfileMock.shared.paid #endif }()` — nebo jednodušeji v DEBUG číst `sandbox.state.paid`, v release `ProfileMock.paid`.
+- `ProfilView`: `#if DEBUG` přidat jako **poslední** `Section("Sandbox")` s `Toggle`y (Zaplaceno, Aktivní běh, Data / mapa stažena, Běh dokončen - poslední `.disabled(!state.runExists)`), `.tint(Ta33Color.orange)`. `Toggle(isOn: Binding(get: { state.x }, set: { model.setX($0) }))`.
+- Karta startovního čísla: `let paid = { #if DEBUG return sandbox.state.paid #else return ProfileMock.shared.paid #endif }()` - nebo jednodušeji v DEBUG číst `sandbox.state.paid`, v release `ProfileMock.paid`.
 
 **Done when**: `xcodebuild` OK; na simulátoru (DEBUG) sekce funguje.
 
 ---
 
-### Step 7: Android — DEBUG sekce v `ProfilContent` + wiring v `ProfilScreen`
+### Step 7: Android - DEBUG sekce v `ProfilContent` + wiring v `ProfilScreen`
 **Goal**: parita na Androidu.
 **Files**: `androidApp/.../ui/profil/ProfilContent.kt`, `ProfilScreen.kt`; ověřit `androidApp/build.gradle.kts` `buildFeatures { buildConfig = true }`
 
 - `ProfilScreen.kt`: získat `SandboxViewModel` (Koin `koinViewModel()` nebo `ViewModelProvider`), collectAsState, předat `sandboxState` + callbacky do `ProfilContent`.
-- `ProfilContent.kt`: `if (BuildConfig.DEBUG) { SandboxCard(...) }` jako poslední — `PaperCard` s `SettingRow` + Material `Switch` pro 4 stavy (poslední `enabled = runExists`). „Zaplaceno" karta čte `if (BuildConfig.DEBUG) sandboxState.paid else ProfileMock.paid`.
+- `ProfilContent.kt`: `if (BuildConfig.DEBUG) { SandboxCard(...) }` jako poslední - `PaperCard` s `SettingRow` + Material `Switch` pro 4 stavy (poslední `enabled = runExists`). „Zaplaceno" karta čte `if (BuildConfig.DEBUG) sandboxState.paid else ProfileMock.paid`.
 - Ověřit, že `BuildConfig` je dostupný (AGP 8+/9 vyžaduje `buildConfig = true`); pokud ne, zapnout.
 
 **Done when**: `:androidApp:assembleDebug` OK; `@Preview` (mock SandboxUiState) vykreslí sekci.
@@ -276,9 +276,9 @@ class SandboxViewModel(
 ---
 
 ### Step 8: Build & vizuální ověření
-**Files**: —
+**Files**: -
 - `./gradlew build` (regen DB) + `:androidApp:assembleDebug` + `xcodebuild -scheme iosApp` + `:shared:allTests`.
-- iOS simulátor: projít §2 kritéria 2–7 (přepnout každý stav, ověřit reakci appky).
+- iOS simulátor: projít §2 kritéria 2-7 (přepnout každý stav, ověřit reakci appky).
 
 **Done when**: všechna kritéria §2.
 
@@ -302,7 +302,7 @@ class SandboxViewModel(
 
 ## 6. SECURITY CONSIDERATIONS
 - **DEBUG-only**: sekce ani destruktivní akce (clearAllRuns/clearAll/reset) se v release nesmí objevit → `#if DEBUG` / `BuildConfig.DEBUG`. `SandboxViewModel` v DI je neškodný (release UI ho nevytvoří).
-- **Data loss**: akce mažou lokální běhy/trasy — přijatelné (dev nástroj, Etapa-1 data jsou lokální mock/seedovatelná). Žádná cloud data.
+- **Data loss**: akce mažou lokální běhy/trasy - přijatelné (dev nástroj, Etapa-1 data jsou lokální mock/seedovatelná). Žádná cloud data.
 - **Sensitive data**: žádná (mock identita). „paid" je vizuální flag, ne reálná platba.
 - **Logging**: nelogovat; žádné PII.
 
@@ -310,8 +310,8 @@ class SandboxViewModel(
 
 ## 7. ASSUMPTIONS
 1. **Scope potvrzen uživatelem** (`AskUserQuestion`): 4 stavy (Zaplaceno, Aktivní běh, Data/mapa stažena, Běh dokončen), platformy iOS + Android, **DEBUG only**. Zaznamenáno jako přijaté.
-2. **„paid" in-memory** (ne persistováno) — reset na `true` po relaunch je pro dev OK; ostatní stavy jsou v DB (přežijí). Když by to vadilo → persistovat (viz §12.3).
-3. **„Data stažena" = TA33 seed z `RouteCatalog`** (ne reálné síťové stažení) — deterministické a offline; stačí pro přepínání gate readiness.
+2. **„paid" in-memory** (ne persistováno) - reset na `true` po relaunch je pro dev OK; ostatní stavy jsou v DB (přežijí). Když by to vadilo → persistovat (viz §12.3).
+3. **„Data stažena" = TA33 seed z `RouteCatalog`** (ne reálné síťové stažení) - deterministické a offline; stačí pro přepínání gate readiness.
 4. **`BuildConfig.DEBUG` je dostupný** v `androidApp` (nebo se doplní `buildConfig = true`).
 5. **Aditivní SQL/repo změny** nerozbijí existující migrace (nové dotazy nad stejným schématem, žádná změna tabulek → žádná SQLDelight migrace).
 6. **Coupling běh↔hotovo** (finish → naTrase OFF) je akceptovaný jako věrný reálnému stavu, ne bug.
@@ -349,7 +349,7 @@ xcodebuild -project iosApp/iosApp.xcodeproj -scheme iosApp -configuration Debug 
 ## 9. DESIGN REFERENCE
 
 ### Visual Spec
-Dev nástroj — bez design-system mockupu. Sekce se **vizuálně podřídí Profilu** (nativní řádky se Switch/Toggle), aby nevyčnívala, ale je jasně označená „Sandbox" (volitelně 🧪). Native look per platforma (memory `native-look-per-platform`).
+Dev nástroj - bez design-system mockupu. Sekce se **vizuálně podřídí Profilu** (nativní řádky se Switch/Toggle), aby nevyčnívala, ale je jasně označená „Sandbox" (volitelně 🧪). Native look per platforma (memory `native-look-per-platform`).
 
 ### Component/Screen Mapping
 - iOS: `Section("Sandbox")` v `ProfilView` (List insetGrouped) + `Toggle` řádky (jako sekce „Nastavení").
@@ -392,16 +392,16 @@ Dev nástroj — bez design-system mockupu. Sekce se **vizuálně podřídí Pro
 | Approach | Pros | Cons | Selected? |
 |---|---|---|---|
 | **A. Sdílený `SandboxViewModel` + aditivní repo metody + reuse katalog seed** | Věrné MVVM projektu; reálné přepínání stavů; obě platformy sdílí logiku; deterministické | Nové repo metody + SQL; run/hotovo coupling k vysvětlení | ✅ |
-| B. Přímé volání repo z UI (bez VM) | Méně nové shared plumbing | Duplikace logiky iOS×Android; porušuje MVVM; těžší test | — |
-| C. „Data stažena ON" přes reálný `PrepareOfflinePackageUseCase` (síť) | Realistické (skutečné stažení) | Vyžaduje síť/async/progress; nedeterministické; pomalé pro dev toggle | — |
-| D. Run lifecycle jako 1 segmented control (Žádný/Na trase/Hotovo) | Čistě modeluje výlučnost stavů | Uživatel chtěl switche; větší UI odchylka | — |
+| B. Přímé volání repo z UI (bez VM) | Méně nové shared plumbing | Duplikace logiky iOS×Android; porušuje MVVM; těžší test | - |
+| C. „Data stažena ON" přes reálný `PrepareOfflinePackageUseCase` (síť) | Realistické (skutečné stažení) | Vyžaduje síť/async/progress; nedeterministické; pomalé pro dev toggle | - |
+| D. Run lifecycle jako 1 segmented control (Žádný/Na trase/Hotovo) | Čistě modeluje výlučnost stavů | Uživatel chtěl switche; větší UI odchylka | - |
 
 **Why the selected approach won**: Uživatel chce reálné přepínání stavů ze switchů; sdílený VM + aditivní repo metody dodrží architekturu (MVVM, shared core) a přes reuse `RouteCatalog`/`DevSeed` je to deterministické a offline.
 
 ### 12.2 Open Questions
-- [ ] **Un-finish vs. nový běh při „Hotovo OFF"** — Proposed: `clearFinished` na latest (vrátí přesně týž běh na trasu); jednodušší a intuitivní.
-- [ ] **„Data stažena ON" — seed jen TA33, nebo i TA50?** — Proposed: TA33 (jako `DevSeed`); TA50 není potřeba pro gate.
-- [ ] **Segmented control místo 2 switchů pro běh?** — Proposed: nechat switche dle zadání; kdyby coupling mátl, přejít na D (§12.1).
+- [ ] **Un-finish vs. nový běh při „Hotovo OFF"** - Proposed: `clearFinished` na latest (vrátí přesně týž běh na trasu); jednodušší a intuitivní.
+- [ ] **„Data stažena ON" - seed jen TA33, nebo i TA50?** - Proposed: TA33 (jako `DevSeed`); TA50 není potřeba pro gate.
+- [ ] **Segmented control místo 2 switchů pro běh?** - Proposed: nechat switche dle zadání; kdyby coupling mátl, přejít na D (§12.1).
 
 ### 12.3 Suggestions & Follow-ups
 - Persistovat „paid" (sloupec v `AppPreferences` + migrace, nebo `multiplatform-settings`), ať přežije relaunch jako ostatní stavy.

@@ -63,7 +63,7 @@ struct ElevationChartView: View {
             drawCallout(context, x: px(vx(peakIdx)), yPoint: py(vy(pts[peakIdx])), yLabel: py(20),
                         meters: Int(profile.highMeters), unit: unit)
 
-            // km axis labels — font scales with the viewport, like every geometric element
+            // km axis labels - font scales with the viewport, like every geometric element
             for km in ticks {
                 let text = Text("\(km) km").font(.system(size: 12 * unit, weight: .black)).foregroundColor(Ta33Color.fgFaint)
                 context.draw(text, at: CGPoint(x: px(tx(km)), y: py(158)), anchor: .center)

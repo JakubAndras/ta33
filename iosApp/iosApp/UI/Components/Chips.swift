@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Statistický chip — slate-100 výplň, velké display číslo + malý overline label. Zrcadlí Android `StatChip`.
+/// Statistický chip - slate-100 výplň, velké display číslo + malý overline label. Zrcadlí Android `StatChip`.
 struct StatChip: View {
     let value: String
     let label: String

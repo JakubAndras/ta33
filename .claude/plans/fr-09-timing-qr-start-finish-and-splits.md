@@ -1,6 +1,6 @@
-# FR-09 Měření Času — QR Start/Finish Timing, Elapsed & Splits (Logic Only)
+# FR-09 Měření Času - QR Start/Finish Timing, Elapsed & Splits (Logic Only)
 
-> **Summary**: Build the shared, headless timing logic for TA33 — a pure QR-payload parser/validator that recognises the *start* vs *finish* QR of the event, a `HandleScannedQrUseCase` that drives FR-02's existing `StartRunUseCase`/`FinishRunUseCase` off a scanned string, a pure drift-free `Stopwatch` + `SplitCalculator` + `TimeFormatter`, a ticking `Flow` stopwatch that derives elapsed from wall-clock time (never persisting per second), and a headless `TimingViewModel` (`StateFlow`: isRunning / elapsed / splits / finished) — all offline, unit-tested, with NO UI and NO camera implementation (the scan is a pure entry-point contract; the camera/preview is a deferred later phase).
+> **Summary**: Build the shared, headless timing logic for TA33 - a pure QR-payload parser/validator that recognises the *start* vs *finish* QR of the event, a `HandleScannedQrUseCase` that drives FR-02's existing `StartRunUseCase`/`FinishRunUseCase` off a scanned string, a pure drift-free `Stopwatch` + `SplitCalculator` + `TimeFormatter`, a ticking `Flow` stopwatch that derives elapsed from wall-clock time (never persisting per second), and a headless `TimingViewModel` (`StateFlow`: isRunning / elapsed / splits / finished) - all offline, unit-tested, with NO UI and NO camera implementation (the scan is a pure entry-point contract; the camera/preview is a deferred later phase).
 
 ---
 
@@ -10,29 +10,29 @@
 On the TA33 course a participant's time is measured by QR codes in the marshalled start and finish areas: scanning the **start** QR starts the stopwatch, scanning the **finish** QR stops it, and each checkpoint records a *split* (mezičas) when it is collected. It must work with no signal, survive app restarts, and the wrong or a foreign QR must be rejected. Today the app can persist start/finish timestamps (FR-02) and checkpoint collection times (FR-08), but nothing turns a *scanned QR string* into a start/finish decision, and nothing exposes a live running clock + splits.
 
 ### 1.2 Solution Overview
-Add a thin FR-09 layer over the existing shared core: a **pure** `QrPayloadParser` (field-configurable format) that classifies a scanned string as start / finish / unrecognised; a `HandleScannedQrUseCase` that inspects the run state and delegates the actual timestamp write to FR-02's **existing** `StartRunUseCase`/`FinishRunUseCase`, returning a sealed `ScanTimingResult`; pure, deterministic `Stopwatch.elapsed(now, start, finish)` and `SplitCalculator.splits(start, collected)`; a `Ticker`-driven `ObserveTimingUseCase` that recomputes elapsed from the clock on each tick (so nothing is persisted per second and the value never drifts); and a headless `TimingViewModel` exposing a `StateFlow<TimingUiState>`. The scanned string enters shared logic through a plain entry point (`TimingViewModel.onQrScanned(raw)`, formalised as a `QrScanHandler` contract) — the camera that produces that string is a deferred UI/platform phase.
+Add a thin FR-09 layer over the existing shared core: a **pure** `QrPayloadParser` (field-configurable format) that classifies a scanned string as start / finish / unrecognised; a `HandleScannedQrUseCase` that inspects the run state and delegates the actual timestamp write to FR-02's **existing** `StartRunUseCase`/`FinishRunUseCase`, returning a sealed `ScanTimingResult`; pure, deterministic `Stopwatch.elapsed(now, start, finish)` and `SplitCalculator.splits(start, collected)`; a `Ticker`-driven `ObserveTimingUseCase` that recomputes elapsed from the clock on each tick (so nothing is persisted per second and the value never drifts); and a headless `TimingViewModel` exposing a `StateFlow<TimingUiState>`. The scanned string enters shared logic through a plain entry point (`TimingViewModel.onQrScanned(raw)`, formalised as a `QrScanHandler` contract) - the camera that produces that string is a deferred UI/platform phase.
 
 ### 1.3 Scope: What This IS
-- **Config model** (`domain/model`): `QrTimingConfig` — field-tunable QR format (scheme, separator, start/finish keywords, optional route-scoping, case sensitivity), with a temporary dev pattern `TA33:START` / `TA33:FINISH`.
+- **Config model** (`domain/model`): `QrTimingConfig` - field-tunable QR format (scheme, separator, start/finish keywords, optional route-scoping, case sensitivity), with a temporary dev pattern `TA33:START` / `TA33:FINISH`.
 - **Pure parser** (`domain/qr`): `QrPayloadParser.parse(raw, config)` → sealed `QrParseResult { StartQr(routeId?) / FinishQr(routeId?) / Unrecognized(raw) }`. No coroutines/I/O/platform.
 - **Scan contract** (`domain/qr`): a `QrScanHandler` fun-interface (the shared entry point the native scanner will call with a decoded string). Implemented by `TimingViewModel`. **No camera, no `expect/actual`** in this phase (see §3.2 / §12).
 - **Orchestration use-case** (`domain/usecase`): `HandleScannedQrUseCase(runId, routeId, raw)` → sealed `ScanTimingResult`. Reads run state, then **REUSES** FR-02 `StartRunUseCase`/`FinishRunUseCase` for the write. Never writes timestamps directly.
 - **Pure timing utils** (`core`): `Stopwatch.elapsed(now, start, finish)`, `SplitCalculator.splits(start, collected)` (→ ordered `List<Split>`), `TimeFormatter.format(millis)` (`H:MM:SS` / `MM:SS`).
-- **Tick source** (`core`): `Ticker` fun-interface + `DefaultTicker` (coroutine `delay`-based) — injectable/fakeable.
+- **Tick source** (`core`): `Ticker` fun-interface + `DefaultTicker` (coroutine `delay`-based) - injectable/fakeable.
 - **Observation use-case** (`domain/usecase`): `ObserveTimingUseCase(runId)` → `Flow<TimingSnapshot>` that `combine`s FR-02 `observeRun` + `observeCollected` and, only while the run is active, ticks to refresh elapsed.
 - **Headless `TimingViewModel`** (`presentation`): `StateFlow<TimingUiState>` (isRunning / isFinished / elapsedMillis / elapsedFormatted / splits / lastScan) + `bind(runId, routeId)` + `onQrScanned(raw)`.
 - **Koin registration** (`di/AppModule`) + Swift `ViewModelProvider.timingViewModel()` accessor (`di/Koin.kt`).
-- **Unit tests** (`commonTest`): parser, stopwatch, splits, formatter, `HandleScannedQrUseCase` transitions, ticking `ObserveTimingUseCase`, ViewModel — using fakes over a real DB.
+- **Unit tests** (`commonTest`): parser, stopwatch, splits, formatter, `HandleScannedQrUseCase` transitions, ticking `ObserveTimingUseCase`, ViewModel - using fakes over a real DB.
 
 ### 1.4 Scope: What This IS NOT
-- **No UI whatsoever** — no Compose/SwiftUI, no camera preview, no scan overlay, no stopwatch widget, no splits list rendering. The ViewModel is headless; rendering `TimingUiState` is the deferred UI phase's job.
-- **No camera / scanner implementation** — CameraX + ML Kit Barcode (Android) and AVFoundation/Vision (iOS) are built in the later UI/platform phase. This phase defines only the *contract* that receives the already-decoded string. **No `expect/actual`** is introduced now (parsing is pure; the camera producer is deferred — see §3.2).
-- **No QR generation** — generating any QR (payment/check-in) is Etapa 2 (project-stack §4). Etapa 1 only *scans* start/finish.
-- **No re-modelling of time** — `startedAtMillis`/`finishedAtMillis` stay on FR-02's `RunSession`; the write goes through FR-02's `StartRunUseCase`/`FinishRunUseCase`. No new timestamp columns, no new table.
-- **No change to FR-08 geofence/collection** — FR-09 only *reads* `CollectedControl.collectedAtMillis`; it never collects or touches proximity logic.
-- **No change to FR-04 deník derivation** — FR-09 reuses the *split notion* (`collectedAt − startedAt`) but does not modify the log deriver; both compute the same formula.
-- **No server sync / networking / map SDK** — Etapa 1 on-device only; `syncStatus` stays `PENDING`.
-- **No new Gradle modules / no new external dependencies** — everything lives in `:shared` as package layers.
+- **No UI whatsoever** - no Compose/SwiftUI, no camera preview, no scan overlay, no stopwatch widget, no splits list rendering. The ViewModel is headless; rendering `TimingUiState` is the deferred UI phase's job.
+- **No camera / scanner implementation** - CameraX + ML Kit Barcode (Android) and AVFoundation/Vision (iOS) are built in the later UI/platform phase. This phase defines only the *contract* that receives the already-decoded string. **No `expect/actual`** is introduced now (parsing is pure; the camera producer is deferred - see §3.2).
+- **No QR generation** - generating any QR (payment/check-in) is Etapa 2 (project-stack §4). Etapa 1 only *scans* start/finish.
+- **No re-modelling of time** - `startedAtMillis`/`finishedAtMillis` stay on FR-02's `RunSession`; the write goes through FR-02's `StartRunUseCase`/`FinishRunUseCase`. No new timestamp columns, no new table.
+- **No change to FR-08 geofence/collection** - FR-09 only *reads* `CollectedControl.collectedAtMillis`; it never collects or touches proximity logic.
+- **No change to FR-04 deník derivation** - FR-09 reuses the *split notion* (`collectedAt − startedAt`) but does not modify the log deriver; both compute the same formula.
+- **No server sync / networking / map SDK** - Etapa 1 on-device only; `syncStatus` stays `PENDING`.
+- **No new Gradle modules / no new external dependencies** - everything lives in `:shared` as package layers.
 
 ---
 
@@ -46,13 +46,13 @@ Implementation is COMPLETE when ALL criteria are met:
 | 2 | `QrPayloadParser` is pure (no coroutines/I/O/platform) and classifies valid start / valid finish / foreign & malformed strings correctly | `QrPayloadParserTest` (valid start, valid finish, route-scoped, unknown/empty/foreign → `Unrecognized`) |
 | 3 | Scanning the **start** QR when the run has not started starts it via FR-02 `StartRunUseCase` (sets `RunSession.startedAtMillis`) | `HandleScannedQrUseCaseTest`: start → `Started`, run's `startedAtMillis` set |
 | 4 | Scanning the **finish** QR while running stops it via FR-02 `FinishRunUseCase` (sets `finishedAtMillis`) | `HandleScannedQrUseCaseTest`: finish while running → `Finished`, `finishedAtMillis` set |
-| 5 | Invalid transitions are rejected without writing: finish-before-start, start-when-already-started, scan-when-finished, wrong route, foreign QR | `HandleScannedQrUseCaseTest` per-case (`FinishBeforeStart`, `AlreadyStarted`, `AlreadyFinished`, `WrongRoute`, `NotATimingQr`) — no repository write |
+| 5 | Invalid transitions are rejected without writing: finish-before-start, start-when-already-started, scan-when-finished, wrong route, foreign QR | `HandleScannedQrUseCaseTest` per-case (`FinishBeforeStart`, `AlreadyStarted`, `AlreadyFinished`, `WrongRoute`, `NotATimingQr`) - no repository write |
 | 6 | `Stopwatch.elapsed` = 0 before start, `now − start` while running, `finish − start` (frozen) once finished; never negative | `StopwatchTest` |
 | 7 | `SplitCalculator.splits` returns one split per collected control, `collectedAt − start`, sorted by `collectedAt`; empty when not started | `SplitCalculatorTest` (incl. unsorted input) |
 | 8 | The ticking stopwatch `Flow` emits an advancing elapsed while running and a single frozen value once finished; nothing is persisted per tick | `ObserveTimingUseCaseTest` with a fake `Ticker` + fixed `TimeProvider`; no repo write on tick |
 | 9 | `TimeFormatter.format` renders `MM:SS` under an hour and `H:MM:SS` at/over an hour | `TimeFormatterTest` boundary cases |
 | 10 | `TimingViewModel.onQrScanned` handles the scanned string and reflects the outcome in `lastScan`; `bind` surfaces live elapsed/splits | `TimingViewModelTest` (`runTest` + `Dispatchers.setMain`) |
-| 11 | No FR-02 timestamp write is duplicated — FR-09 calls FR-02 use-cases and never `RunRepository.setStarted/setFinished` directly | Code review (no direct `setStarted`/`setFinished` in FR-09) |
+| 11 | No FR-02 timestamp write is duplicated - FR-09 calls FR-02 use-cases and never `RunRepository.setStarted/setFinished` directly | Code review (no direct `setStarted`/`setFinished` in FR-09) |
 | 12 | All new components resolvable via Koin; Swift `timingViewModel()` compiles into `Shared` | Koin resolution / app launch; `xcodebuild` headless |
 | 13 | `./gradlew :shared:allTests` green | Run tests |
 
@@ -63,7 +63,7 @@ Implementation is COMPLETE when ALL criteria are met:
 ### 3.1 Architecture
 
 ```
-      NATIVE UI + CAMERA (later phase — NOT built here)
+      NATIVE UI + CAMERA (later phase - NOT built here)
       CameraX + ML Kit Barcode (Android) / AVFoundation + Vision (iOS)
       decodes a QR frame → hands the raw String to shared logic
       renders TimingUiState (clock, splits); calls bind() / onQrScanned(raw)
@@ -103,21 +103,21 @@ observeRun    observeCollected  ┌───────────────
    The camera-backed producer is DEFERRED (UI phase); no expect/actual here.
 ```
 
-**Data flow — start/finish scan:** the (later) camera screen decodes a QR frame and calls `TimingViewModel.onQrScanned(raw)`. The VM launches `HandleScannedQrUseCase(runId, routeId, raw)`, which (1) `QrPayloadParser.parse`s the string using `QrTimingConfig`; (2) loads the run via `RunRepository.getRun(runId)`; (3) for a **start** QR on a not-yet-started run calls FR-02 `StartRunUseCase(runId)` (which writes `startedAtMillis = TimeProvider.nowMillis()`), for a **finish** QR on a running run calls FR-02 `FinishRunUseCase(runId)` (writes `finishedAtMillis`); every invalid case returns a sealed `ScanTimingResult` **without** writing. The FR-02 write makes `observeRun` re-emit.
+**Data flow - start/finish scan:** the (later) camera screen decodes a QR frame and calls `TimingViewModel.onQrScanned(raw)`. The VM launches `HandleScannedQrUseCase(runId, routeId, raw)`, which (1) `QrPayloadParser.parse`s the string using `QrTimingConfig`; (2) loads the run via `RunRepository.getRun(runId)`; (3) for a **start** QR on a not-yet-started run calls FR-02 `StartRunUseCase(runId)` (which writes `startedAtMillis = TimeProvider.nowMillis()`), for a **finish** QR on a running run calls FR-02 `FinishRunUseCase(runId)` (writes `finishedAtMillis`); every invalid case returns a sealed `ScanTimingResult` **without** writing. The FR-02 write makes `observeRun` re-emit.
 
-**Data flow — live clock & splits:** `bind(runId, routeId)` launches `ObserveTimingUseCase(runId)`, which `combine`s FR-02 `observeRun(runId)` + `observeCollected(runId)`; while the run is active it `flatMapLatest`es onto `Ticker.ticks(1000ms)` and, each tick, recomputes `Stopwatch.elapsed(TimeProvider.nowMillis(), start, finish)` + `SplitCalculator.splits(start, collected)` → a `TimingSnapshot`. Before start it emits a single zeroed snapshot; after finish a single frozen snapshot (`finish − start`), no further ticking. Nothing is written per second — elapsed is *derived*, not accumulated, so it cannot drift and survives restart (start timestamp is durable in FR-02).
+**Data flow - live clock & splits:** `bind(runId, routeId)` launches `ObserveTimingUseCase(runId)`, which `combine`s FR-02 `observeRun(runId)` + `observeCollected(runId)`; while the run is active it `flatMapLatest`es onto `Ticker.ticks(1000ms)` and, each tick, recomputes `Stopwatch.elapsed(TimeProvider.nowMillis(), start, finish)` + `SplitCalculator.splits(start, collected)` → a `TimingSnapshot`. Before start it emits a single zeroed snapshot; after finish a single frozen snapshot (`finish − start`), no further ticking. Nothing is written per second - elapsed is *derived*, not accumulated, so it cannot drift and survives restart (start timestamp is durable in FR-02).
 
 ### 3.2 Key Decisions
 
 | Decision | Choice | Reasoning |
 |----------|--------|-----------|
-| Timestamp ownership | **REUSE FR-02 `RunSession.startedAtMillis`/`finishedAtMillis`** — no new columns/table | FR-02 already models run time and its comments already say "set by QR start/finish (FR-09)"; re-modelling would duplicate + risk drift |
+| Timestamp ownership | **REUSE FR-02 `RunSession.startedAtMillis`/`finishedAtMillis`** - no new columns/table | FR-02 already models run time and its comments already say "set by QR start/finish (FR-09)"; re-modelling would duplicate + risk drift |
 | Timestamp write | **REUSE FR-02 `StartRunUseCase`/`FinishRunUseCase`**; FR-09 never calls `setStarted`/`setFinished` directly | Single source of the write + FR-02's guards (start no-op if already started; finish rejects if not started / finish < start) act as belt-and-braces |
 | Decision home | FR-09's `HandleScannedQrUseCase` reads run state and **decides** which FR-02 use-case to call, returning a rich sealed result | Keeps the QR→timing policy in one testable place; decouples from FR-02's internal return shape (FR-09 re-reads the run for the result) |
 | QR parsing | **Pure `QrPayloadParser`** in `domain/qr`; format via injected `QrTimingConfig` | Deterministic, table-testable in `commonTest` (mirrors FR-02 `GeoUtils` / FR-08 `ProximityEvaluator`); no platform |
 | QR format | Field-configurable (`scheme`/`separator`/keywords/route-scope/case), **dev default `TA33:START` / `TA33:FINISH`** | Organizer finalises the real format later; a simple prefixed token unblocks dev + tests now; route-scoping optional for multi-route safety |
-| Scan seam | **Pure `QrScanHandler` entry point** (`onQrScanned(raw)`), implemented by `TimingViewModel`; **no `expect/actual`** this phase | The only platform part is the camera *producer*, which is deferred UI; the string it yields is plain — parsing/validation are pure shared Kotlin. Introducing `expect/actual` now would be an empty seam (project-stack: "expect/actual only where platform is required") |
-| Elapsed computation | **Pure `Stopwatch.elapsed(now, start, finish)`** — derive from wall-clock, never accumulate | Drift-free; correct after app kill/restart (recomputed from durable `startedAtMillis`); trivially unit-testable with a fixed `TimeProvider` |
+| Scan seam | **Pure `QrScanHandler` entry point** (`onQrScanned(raw)`), implemented by `TimingViewModel`; **no `expect/actual`** this phase | The only platform part is the camera *producer*, which is deferred UI; the string it yields is plain - parsing/validation are pure shared Kotlin. Introducing `expect/actual` now would be an empty seam (project-stack: "expect/actual only where platform is required") |
+| Elapsed computation | **Pure `Stopwatch.elapsed(now, start, finish)`** - derive from wall-clock, never accumulate | Drift-free; correct after app kill/restart (recomputed from durable `startedAtMillis`); trivially unit-testable with a fixed `TimeProvider` |
 | Ticking | **`Ticker` fun-interface + `DefaultTicker`** (`flow { emit; delay }`); ticks only *trigger* recomputation | Nothing persisted per second (battery + DB churn); injectable fake makes the stopwatch deterministically testable; `flatMapLatest` stops ticking when the run is not active |
 | Splits | **Pure `SplitCalculator.splits(start, collected)`** → `List<Split>(controlId, collectedAt, splitMillis)` sorted by `collectedAt` | Same formula as FR-04 `RunLogEntry.splitMillis` (`collectedAt − startedAt`); FR-09 derives directly from `CollectedControl` so it stays decoupled from the deník deriver, while the *notion* is shared (UI can join names via FR-04 later) |
 | Time formatting | **Pure `TimeFormatter`** (`H:MM:SS` ≥ 1 h, else `MM:SS`) in `commonMain` | No `kotlinx-datetime` dependency needed for a duration; pure integer math is testable and locale-neutral |
@@ -129,7 +129,7 @@ observeRun    observeCollected  ┌───────────────
 ## 4. IMPLEMENTATION STEPS
 
 > Execute in order. Do not skip. Paths under `shared/src/commonMain/kotlin/com/example/ta33/` unless stated. Base package `com.example.ta33`.
-> **Dependency ordering**: assumes **FR-02** (`RunSession`, `RunRepository.observeRun`/`observeCollected`/`getRun`, `StartRunUseCase`, `FinishRunUseCase`, `TimeProvider`, `CollectedControl`, `appModule`, `di/Koin.kt`, `kotlinx-coroutines-test`) is implemented. FR-04 (`RunLogEntry.splitMillis` notion) and FR-08 (`CollectedControl.collectedAtMillis` writer) are consumed/aligned only — untouched. No new external dependencies.
+> **Dependency ordering**: assumes **FR-02** (`RunSession`, `RunRepository.observeRun`/`observeCollected`/`getRun`, `StartRunUseCase`, `FinishRunUseCase`, `TimeProvider`, `CollectedControl`, `appModule`, `di/Koin.kt`, `kotlinx-coroutines-test`) is implemented. FR-04 (`RunLogEntry.splitMillis` notion) and FR-08 (`CollectedControl.collectedAtMillis` writer) are consumed/aligned only - untouched. No new external dependencies.
 
 ### Step 1: Add `QrTimingConfig` (field-tunable QR format)
 **Goal**: One place for the start/finish QR format the organizer will finalise.
@@ -214,7 +214,7 @@ class QrPayloadParser {
 package com.example.ta33.domain.qr
 
 /**
- * Contract the native QR scanner (CameraX + ML Kit / AVFoundation + Vision — built in the UI phase)
+ * Contract the native QR scanner (CameraX + ML Kit / AVFoundation + Vision - built in the UI phase)
  * uses to hand a decoded payload into shared logic. This logic-only phase defines the seam;
  * TimingViewModel implements it. The camera-backed producer is deferred.
  */
@@ -223,7 +223,7 @@ fun interface QrScanHandler {
     fun onQrScanned(raw: String)
 }
 ```
-> Rationale (§3.2): the only platform-specific piece is the camera *producer*, which is deferred UI. The decoded value is a plain `String`, so no `expect/actual` is warranted now. If a producer-style seam is preferred when the camera lands, a `QrScanner` interface with platform `actual`s via `platformModule` can be added then (see §12) — it is not needed for logic.
+> Rationale (§3.2): the only platform-specific piece is the camera *producer*, which is deferred UI. The decoded value is a plain `String`, so no `expect/actual` is warranted now. If a producer-style seam is preferred when the camera lands, a `QrScanner` interface with platform `actual`s via `platformModule` can be added then (see §12) - it is not needed for logic.
 
 **Done when**: Compiles.
 
@@ -236,7 +236,7 @@ fun interface QrScanHandler {
 ```kotlin
 package com.example.ta33.core
 
-/** PURE. Elapsed derives from wall-clock time — never accumulated, so it cannot drift and
+/** PURE. Elapsed derives from wall-clock time - never accumulated, so it cannot drift and
  *  is correct after app restart (start timestamp is durable in FR-02 RunSession). */
 object Stopwatch {
     fun elapsed(nowMillis: Long, startedAtMillis: Long?, finishedAtMillis: Long?): Long = when {
@@ -648,10 +648,10 @@ Fakes: reuse FR-02 `FakeRunRepository` / fixed-`TimeProvider` helpers; add `Fake
 ## 6. SECURITY CONSIDERATIONS
 
 - **Input validation**: the scanned QR string is untrusted free input. `QrPayloadParser` treats anything not matching the exact configured format as `Unrecognized` (no exceptions, no partial writes); route-scoping optionally binds a start/finish QR to a specific route. `runId`/`routeId` come from FR-01 app state / FR-03 nav args, not the scan.
-- **Auth/Access control**: none in Etapa 1 — anonymous local participant, no tokens (Etapa 2 uses Keystore/Keychain per stack §4).
+- **Auth/Access control**: none in Etapa 1 - anonymous local participant, no tokens (Etapa 2 uses Keystore/Keychain per stack §4).
 - **Sensitive data**: start/finish timestamps and splits are personal data but stay **on-device only** (no upload in Etapa 1; `syncStatus = PENDING`). Before any time leaves the device (Etapa 2 sync), run a privacy review.
 - **Anti-abuse**: timing QR lives in the marshalled start/finish areas (zadani); the parser + optional route-scoping reject foreign QRs, and the state machine rejects out-of-order scans (finish-before-start, double-start, scan-after-finish) so the clock cannot be trivially gamed by rescanning.
-- **Logging**: Napier at debug only. Log the *classification* and *transition* (e.g. `scan=START result=Started`) — do **not** log raw QR payloads at info level or write timing logs to persistent files (mirror FR-02/FR-08 §6).
+- **Logging**: Napier at debug only. Log the *classification* and *transition* (e.g. `scan=START result=Started`) - do **not** log raw QR payloads at info level or write timing logs to persistent files (mirror FR-02/FR-08 §6).
 
 ---
 
@@ -661,13 +661,13 @@ Fakes: reuse FR-02 `FakeRunRepository` / fixed-`TimeProvider` helpers; add `Fake
 
 1. **FR-02 is implemented first** and its types are **referenced, not duplicated**: `RunSession` (`startedAtMillis?`/`finishedAtMillis?`), `RunRepository.getRun`/`observeRun`/`observeCollected`, `StartRunUseCase`/`FinishRunUseCase`, `TimeProvider`, `CollectedControl`, `appModule`, `di/Koin.kt`, `kotlinx-coroutines-test`. If any is unmerged, fold the seam in rather than restructuring. Impact if wrong: signature-only adjustments.
 2. **FR-02 `StartRunUseCase`/`FinishRunUseCase` `invoke` take `runId: String`** and write via `RunRepository.setStarted`/`setFinished` using `TimeProvider`. FR-09 re-reads the run for its result, so it does not depend on their return type. Impact if wrong: map their result instead of re-reading (localized).
-3. **QR timing format is not yet finalised** — the dev default `TA33:START` / `TA33:FINISH` (case-insensitive, optional route-scoped 3rd segment) is a placeholder in `QrTimingConfig`; the organizer sets the real format later with no code change. Impact if wrong: config values only.
-4. **No `expect/actual` is needed this phase** — the camera producer is deferred UI; the scanned value is a plain `String`, and parsing is pure. Impact if wrong (e.g. a producer-style `QrScanner` interface is preferred): add it when the camera lands (§12), no rework of the pure logic.
+3. **QR timing format is not yet finalised** - the dev default `TA33:START` / `TA33:FINISH` (case-insensitive, optional route-scoped 3rd segment) is a placeholder in `QrTimingConfig`; the organizer sets the real format later with no code change. Impact if wrong: config values only.
+4. **No `expect/actual` is needed this phase** - the camera producer is deferred UI; the scanned value is a plain `String`, and parsing is pure. Impact if wrong (e.g. a producer-style `QrScanner` interface is preferred): add it when the camera lands (§12), no rework of the pure logic.
 5. **Splits are derived directly from `CollectedControl`** (same formula as FR-04 `RunLogEntry.splitMillis`), keeping FR-09 decoupled from the deník deriver. Impact if wrong: source splits from FR-04's read model instead (one call-site swap).
-6. **One active run at a time in Etapa 1** (consistent with FR-02) — `runId` is provided by app state. Impact if wrong: unchanged, `runId` is a parameter.
-7. **Elapsed is derived, not persisted** — `Stopwatch` recomputes from `startedAtMillis`; a 1 s tick is display cadence only. Impact if wrong: none for correctness (survives restart); tick period is a constructor default.
+6. **One active run at a time in Etapa 1** (consistent with FR-02) - `runId` is provided by app state. Impact if wrong: unchanged, `runId` is a parameter.
+7. **Elapsed is derived, not persisted** - `Stopwatch` recomputes from `startedAtMillis`; a 1 s tick is display cadence only. Impact if wrong: none for correctness (survives restart); tick period is a constructor default.
 8. **Timestamps are epoch-millis `Long`** (FR-02), no `kotlinx-datetime`. `TimeFormatter` is pure integer math. Impact if wrong: none for a duration.
-9. **Only Android + iOS targets** — pure Kotlin + coroutines; `Dispatchers.setMain` only in the VM test; `flatMapLatest` `@OptIn(ExperimentalCoroutinesApi::class)`.
+9. **Only Android + iOS targets** - pure Kotlin + coroutines; `Dispatchers.setMain` only in the VM test; `flatMapLatest` `@OptIn(ExperimentalCoroutinesApi::class)`.
 
 > Open questions live in Section 12.
 
@@ -676,25 +676,25 @@ Fakes: reuse FR-02 `FakeRunRepository` / fixed-`TimeProvider` helpers; add `Fake
 ## 8. QUICK REFERENCE
 
 ### Files to Modify
-- `shared/src/commonMain/kotlin/com/example/ta33/di/AppModule.kt` — register `QrTimingConfig`, `QrPayloadParser`, `Ticker`, `HandleScannedQrUseCase`, `ObserveTimingUseCase`, `TimingViewModel`.
-- `shared/src/commonMain/kotlin/com/example/ta33/di/Koin.kt` — add `timingViewModel()` Swift accessor.
+- `shared/src/commonMain/kotlin/com/example/ta33/di/AppModule.kt` - register `QrTimingConfig`, `QrPayloadParser`, `Ticker`, `HandleScannedQrUseCase`, `ObserveTimingUseCase`, `TimingViewModel`.
+- `shared/src/commonMain/kotlin/com/example/ta33/di/Koin.kt` - add `timingViewModel()` Swift accessor.
 - *(No FR-02/FR-04/FR-08 edits.)* Only verify FR-02 `StartRunUseCase`/`FinishRunUseCase`/`RunRepository.getRun` signatures on first build.
 
 ### Files to Create
-- `domain/model/QrTimingConfig.kt` — field-tunable QR format.
-- `domain/model/Split.kt` — checkpoint split (mezičas) read model.
-- `domain/model/TimingSnapshot.kt` — timing read model.
-- `domain/qr/QrParseResult.kt` — sealed parse outcome.
-- `domain/qr/QrPayloadParser.kt` — pure parser/validator.
-- `domain/qr/QrScanHandler.kt` — pure scan entry-point contract.
-- `core/Stopwatch.kt` — pure elapsed.
-- `core/SplitCalculator.kt` — pure splits.
-- `core/TimeFormatter.kt` — pure duration formatting.
-- `core/Ticker.kt` — `Ticker` fun-interface + `DefaultTicker`.
-- `domain/usecase/HandleScannedQrUseCase.kt` — orchestration + `ScanTimingResult`.
-- `domain/usecase/ObserveTimingUseCase.kt` — ticking `Flow<TimingSnapshot>`.
-- `presentation/TimingViewModel.kt` — headless `StateFlow` + `bind`/`onQrScanned` (+ `TimingUiState`).
-- `commonTest/…` — `QrPayloadParserTest`, `StopwatchTest`, `SplitCalculatorTest`, `TimeFormatterTest`, `HandleScannedQrUseCaseTest`, `ObserveTimingUseCaseTest`, `TimingViewModelTest` (+ `FakeTicker`; reuse FR-02 fakes).
+- `domain/model/QrTimingConfig.kt` - field-tunable QR format.
+- `domain/model/Split.kt` - checkpoint split (mezičas) read model.
+- `domain/model/TimingSnapshot.kt` - timing read model.
+- `domain/qr/QrParseResult.kt` - sealed parse outcome.
+- `domain/qr/QrPayloadParser.kt` - pure parser/validator.
+- `domain/qr/QrScanHandler.kt` - pure scan entry-point contract.
+- `core/Stopwatch.kt` - pure elapsed.
+- `core/SplitCalculator.kt` - pure splits.
+- `core/TimeFormatter.kt` - pure duration formatting.
+- `core/Ticker.kt` - `Ticker` fun-interface + `DefaultTicker`.
+- `domain/usecase/HandleScannedQrUseCase.kt` - orchestration + `ScanTimingResult`.
+- `domain/usecase/ObserveTimingUseCase.kt` - ticking `Flow<TimingSnapshot>`.
+- `presentation/TimingViewModel.kt` - headless `StateFlow` + `bind`/`onQrScanned` (+ `TimingUiState`).
+- `commonTest/…` - `QrPayloadParserTest`, `StopwatchTest`, `SplitCalculatorTest`, `TimeFormatterTest`, `HandleScannedQrUseCaseTest`, `ObserveTimingUseCaseTest`, `TimingViewModelTest` (+ `FakeTicker`; reuse FR-02 fakes).
 
 ### Dependencies
 - **None new.** (Already present: coroutines-core + `kotlinx-coroutines-test`, Koin, lifecycle-viewmodel, Napier; FR-02 `RunSession`/use-cases/`TimeProvider`.) No map SDK, no networking, no `kotlinx-datetime`.
@@ -726,28 +726,28 @@ xcodebuild -project iosApp/iosApp.xcodeproj -scheme iosApp -configuration Debug 
 | Approach | Pros | Cons | Selected? |
 |----------|------|------|-----------|
 | **A. Pure `QrPayloadParser` + `HandleScannedQrUseCase` delegating to FR-02 `Start/FinishRunUseCase`; derived `Stopwatch`/`SplitCalculator`; `Ticker`-driven `ObserveTimingUseCase`; headless `TimingViewModel`; scan = pure `onQrScanned` entry (no `expect/actual`)** | Reuses FR-02 time model + write path + `TimeProvider`; drift-free & restart-safe; fully pure/table-testable in `commonTest`; no new deps/schema; no platform seam until the camera actually exists | A little Flow plumbing (`flatMapLatest` + `distinctUntilChanged`) | ✅ |
-| B. **`expect/actual QrScanner` producer interface now** (platform stubs) with `Flow<String>` scans | Formal platform seam upfront | Empty seam this phase (camera deferred), adds android/ios `actual` files with nothing to do; contradicts "expect/actual only where platform is required"; more surface to maintain | — |
-| C. **Persist elapsed / tick counter to the DB** (write each second) | "Current time" always in the DB | DB churn + battery cost every second; drift risk; pointless — elapsed is a pure function of `start`/`now`/`finish` already durable in FR-02 | — |
-| D. **FR-09 writes `startedAtMillis`/`finishedAtMillis` directly** via `RunRepository.setStarted/setFinished` | One fewer indirection | Duplicates FR-02's write + guards; two code paths can diverge; violates the reuse constraint | — |
-| E. **New `TimingSession` table owning its own start/finish** | Isolated timing model | Re-models what `RunSession` already holds (FR-02 comments already reserve it for FR-09); migration + sync duplication; splits lose their `RunSession` anchor | — |
+| B. **`expect/actual QrScanner` producer interface now** (platform stubs) with `Flow<String>` scans | Formal platform seam upfront | Empty seam this phase (camera deferred), adds android/ios `actual` files with nothing to do; contradicts "expect/actual only where platform is required"; more surface to maintain | - |
+| C. **Persist elapsed / tick counter to the DB** (write each second) | "Current time" always in the DB | DB churn + battery cost every second; drift risk; pointless - elapsed is a pure function of `start`/`now`/`finish` already durable in FR-02 | - |
+| D. **FR-09 writes `startedAtMillis`/`finishedAtMillis` directly** via `RunRepository.setStarted/setFinished` | One fewer indirection | Duplicates FR-02's write + guards; two code paths can diverge; violates the reuse constraint | - |
+| E. **New `TimingSession` table owning its own start/finish** | Isolated timing model | Re-models what `RunSession` already holds (FR-02 comments already reserve it for FR-09); migration + sync duplication; splits lose their `RunSession` anchor | - |
 
 **Why the selected approach won**: it keeps the entire timing decision in shared, pure, unit-testable Kotlin (stack goal), reuses FR-02's `RunSession` time fields, its `Start/FinishRunUseCase` write path and `TimeProvider` with zero duplication, derives a drift-free clock that survives app restart, persists nothing per second, and adds no platform seam until the camera genuinely needs one.
 
 ### 12.2 Open Questions
 
-- [ ] **Final QR payload format for start/finish** — Proposed direction: ship the `TA33:START`/`TA33:FINISH` dev default in `QrTimingConfig`; confirm the exact scheme (and whether it is route-scoped or event-global) with the organizer before the field test; changing it is config-only.
-- [ ] **Exact FR-02 `Start/FinishRunUseCase` signatures & return types** — Proposed direction: assume `suspend operator fun invoke(runId)`; verify on first build and, if they return a result type, map it instead of the re-read in `HandleScannedQrUseCase`.
-- [ ] **Should a rejected scan (foreign / out-of-order) surface a user-visible message?** — Proposed direction: yes, in the UI phase — `lastScan: ScanTimingResult` already carries enough for a toast/snackbar; no logic change.
-- [ ] **Display cadence** — Proposed direction: 1 s tick (constructor default). If sub-second is wanted for a sprint-style display, lower `tickPeriodMillis`; elapsed math is unaffected.
-- [ ] **Where do `runId`/`routeId` come from at scan time?** — Proposed direction: FR-01 app state (active run) + FR-03 active route; `bind(runId, routeId)` before enabling the scanner. Confirm when the UI phase lands.
+- [ ] **Final QR payload format for start/finish** - Proposed direction: ship the `TA33:START`/`TA33:FINISH` dev default in `QrTimingConfig`; confirm the exact scheme (and whether it is route-scoped or event-global) with the organizer before the field test; changing it is config-only.
+- [ ] **Exact FR-02 `Start/FinishRunUseCase` signatures & return types** - Proposed direction: assume `suspend operator fun invoke(runId)`; verify on first build and, if they return a result type, map it instead of the re-read in `HandleScannedQrUseCase`.
+- [ ] **Should a rejected scan (foreign / out-of-order) surface a user-visible message?** - Proposed direction: yes, in the UI phase - `lastScan: ScanTimingResult` already carries enough for a toast/snackbar; no logic change.
+- [ ] **Display cadence** - Proposed direction: 1 s tick (constructor default). If sub-second is wanted for a sprint-style display, lower `tickPeriodMillis`; elapsed math is unaffected.
+- [ ] **Where do `runId`/`routeId` come from at scan time?** - Proposed direction: FR-01 app state (active run) + FR-03 active route; `bind(runId, routeId)` before enabling the scanner. Confirm when the UI phase lands.
 
 ### 12.3 Suggestions & Follow-ups
 
-- **UI phase**: build the camera scanner (CameraX + ML Kit Barcode / AVFoundation + Vision) that decodes a frame and calls `TimingViewModel.onQrScanned(raw)`; render `elapsedFormatted`, `splits`, and map `lastScan` to a start/finish/error prompt. If a producer-style seam is preferred then, add a `QrScanner` interface with platform `actual`s via `platformModule` — the pure logic here is unaffected.
-- **FR-04 deník**: the same `Split` values (`collectedAt − start`) already appear as `RunLogEntry.splitMillis`; the UI can show splits either from FR-04 (with control names) or from FR-09's `TimingUiState.splits` — keep a single formula (`coerceAtLeast(0)`); consider extracting one shared `splitMillis(start, collectedAt)` helper if drift is a worry.
+- **UI phase**: build the camera scanner (CameraX + ML Kit Barcode / AVFoundation + Vision) that decodes a frame and calls `TimingViewModel.onQrScanned(raw)`; render `elapsedFormatted`, `splits`, and map `lastScan` to a start/finish/error prompt. If a producer-style seam is preferred then, add a `QrScanner` interface with platform `actual`s via `platformModule` - the pure logic here is unaffected.
+- **FR-04 deník**: the same `Split` values (`collectedAt − start`) already appear as `RunLogEntry.splitMillis`; the UI can show splits either from FR-04 (with control names) or from FR-09's `TimingUiState.splits` - keep a single formula (`coerceAtLeast(0)`); consider extracting one shared `splitMillis(start, collectedAt)` helper if drift is a worry.
 - **Etapa 2 sync**: start/finish/splits are already durable with `syncStatus = PENDING`; an uploader attaches with no schema change.
 - **Monotonic timing**: guard the multi-hour clock against wall-clock jumps in Etapa 2 (a monotonic time source alongside `TimeProvider`), matching FR-02 §12.3.
-- Add a **JVM SQLite driver** integration test (`androidHostTest`) exercising `scan START → tick → collect → scan FINISH → frozen elapsed + splits` against a real DB — good coverage, out of scope here.
+- Add a **JVM SQLite driver** integration test (`androidHostTest`) exercising `scan START → tick → collect → scan FINISH → frozen elapsed + splits` against a real DB - good coverage, out of scope here.
 - Add a Koin **`checkModules()`** test spanning FR-02/FR-09 to catch DI-graph breakage.
 
-> Sections 9 (Design Reference) and 10 (Corrections From Current State) intentionally omitted: this is logic-only work with no UI/visual spec (the camera/clock/splits screens are deferred UI), and it is greenfield FR-09 with no prior implementation to correct — all upstream touches are reuse of existing FR-02 seams, not corrections.
+> Sections 9 (Design Reference) and 10 (Corrections From Current State) intentionally omitted: this is logic-only work with no UI/visual spec (the camera/clock/splits screens are deferred UI), and it is greenfield FR-09 with no prior implementation to correct - all upstream touches are reuse of existing FR-02 seams, not corrections.

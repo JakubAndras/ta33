@@ -1,8 +1,8 @@
 import SwiftUI
 
-/// Mock „odbavovací QR" — deterministický 21×21 pseudo-vzor (jako design `QRGlyph`).
+/// Mock „odbavovací QR" - deterministický 21×21 pseudo-vzor (jako design `QRGlyph`).
 /// NENÍ skenovatelný; jen vizuální placeholder do doby, než přijde reálné generování QR
-/// (Etapa 2, FR-13). Barvy z tokenů — [cellColor] tmavé buňky na [background].
+/// (Etapa 2, FR-13). Barvy z tokenů - [cellColor] tmavé buňky na [background].
 struct QrGlyphView: View {
     var cellColor: Color = Ta33Color.slate900
     var background: Color = Ta33Color.paper

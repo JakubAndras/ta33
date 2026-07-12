@@ -44,7 +44,7 @@ class MapaViewModel(
             selected ?: app.activeRouteId ?: itins.firstOrNull()?.routeId
         }.distinctUntilChanged()
 
-        // A cross-highlight belongs to one displayed route: clear it whenever that route changes —
+        // A cross-highlight belongs to one displayed route: clear it whenever that route changes -
         // via bindSelected/toggle OR an external activeRouteId change (a highlight can't survive a
         // route swap because ordinals then point at a different control).
         displayedRouteId

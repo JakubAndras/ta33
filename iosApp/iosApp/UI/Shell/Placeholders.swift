@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Splash — zobrazí se, dokud `AppUiState.readiness == .loading`.
+/// Splash - zobrazí se, dokud `AppUiState.readiness == .loading`.
 /// Nativní iOS splash: značka „TA33" + systémový `ProgressView` na cream pozadí.
 struct SplashView: View {
     var body: some View {
@@ -37,7 +37,7 @@ struct StubView: View {
     }
 }
 
-/// Placeholder pro přípravu dat akce (FR-11 gate — skutečná obrazovka jindy).
+/// Placeholder pro přípravu dat akce (FR-11 gate - skutečná obrazovka jindy).
 /// Zobrazí se pro `readiness == .notReady / .preparing`.
 struct PreparationPlaceholder: View {
     var body: some View {

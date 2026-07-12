@@ -1,6 +1,6 @@
-# RD-01 — Deník (VariantPrehled) — Android + iOS
+# RD-01 - Deník (VariantPrehled) - Android + iOS
 
-> **Summary**: Přepsat obrazovku Deník na kanonický design `VariantPrehled`: tmavý header (TRASA/TA33/Přepnout + Délka/Čas startu/Finální čas), timeline „Kontroly na trase" (start/kontroly/cíl s km, úsekem, mezičasem a stavem) a výškový profil — na Androidu (Compose) i iOS (SwiftUI), nad novým route katalogem + stavem běhu.
+> **Summary**: Přepsat obrazovku Deník na kanonický design `VariantPrehled`: tmavý header (TRASA/TA33/Přepnout + Délka/Čas startu/Finální čas), timeline „Kontroly na trase" (start/kontroly/cíl s km, úsekem, mezičasem a stavem) a výškový profil - na Androidu (Compose) i iOS (SwiftUI), nad novým route katalogem + stavem běhu.
 
 ---
 
@@ -13,16 +13,16 @@ Současný Deník je postavený podle zastaralého `Screens.jsx::DenikOnRouteScr
 Nový sdílený `DenikViewModel` složí **RouteItinerary** (katalog, RD-00) + **stav běhu** (`RunRepository.observeRun`/`observeCollected` + `AppViewModel` aktivní běh/trasa) do `DenikUiState` (header + stops se stavem/km/úsekem + elevace). Android Compose a iOS SwiftUI ho vykreslí nativně dle `VariantPrehled`. Přepínač TA33/TA50 mění zobrazený itinerář (stav se počítá jen pro aktivní trasu). Nahradí dosavadní Deník (ui-01/02) i v shellu.
 
 ### 1.3 Scope: What This IS
-- Sdílený `DenikViewModel` + `DenikUiState` (commonMain) — kombinuje katalog + běh.
-- Android Compose Deník dle `VariantPrehled` (header, timeline, elevační graf) — nahradí `DenikScreen`/`DenikContent`.
-- iOS SwiftUI Deník dle `VariantPrehled` — nahradí `DenikView`/`DenikViews`.
+- Sdílený `DenikViewModel` + `DenikUiState` (commonMain) - kombinuje katalog + běh.
+- Android Compose Deník dle `VariantPrehled` (header, timeline, elevační graf) - nahradí `DenikScreen`/`DenikContent`.
+- iOS SwiftUI Deník dle `VariantPrehled` - nahradí `DenikView`/`DenikViews`.
 - Přepínač tras TA33/TA50; napojení do shellu (tab Deník).
 - Elevační graf (Compose Canvas / SwiftUI Path) dle `ElevProfile`.
 
 ### 1.4 Scope: What This IS NOT
-- Mapa, Profil — samostatné plány (RD-02/03).
-- Reálné mezičasy per kontrola nad rámec startu/sběru — „mezičas —:—" placeholder tam, kde chybí (design to tak má).
-- Reálná elevační data — z mock katalogu (RD-00).
+- Mapa, Profil - samostatné plány (RD-02/03).
+- Reálné mezičasy per kontrola nad rámec startu/sběru - „mezičas -:-" placeholder tam, kde chybí (design to tak má).
+- Reálná elevační data - z mock katalogu (RD-00).
 
 ---
 
@@ -30,12 +30,12 @@ Nový sdílený `DenikViewModel` složí **RouteItinerary** (katalog, RD-00) + *
 | # | Criterion | Verification |
 |---|-----------|--------------|
 | 1 | Android `:androidApp:assembleDebug` + iOS `xcodebuild -scheme iosApp` zelené | příkazy |
-| 2 | Header: „TRASA / TA33", tlačítko Přepnout, staty Délka `33,2 km` / Čas startu (z běhu) / Finální čas (`—`/finish) | preview + běh |
-| 3 | Timeline „Kontroly na trase": START, KONTROLA 1..N, CÍL s km vpravo, názvem, úsekem „úsek X,X km \| mezičas —:—" | preview |
+| 2 | Header: „TRASA / TA33", tlačítko Přepnout, staty Délka `33,2 km` / Čas startu (z běhu) / Finální čas (`-`/finish) | preview + běh |
+| 3 | Timeline „Kontroly na trase": START, KONTROLA 1..N, CÍL s km vpravo, názvem, úsekem „úsek X,X km \| mezičas -:-" | preview |
 | 4 | Stav uzlů: done=zelený (číslo/fajfka) + „splněno", next=oranžový glow + „následující", upcoming=bílý/šedý obrys, start=slate + čas, finish=slate hvězda; spojnice zelená po splněné části | preview (fake stavy) |
 | 5 | Výškový profil: „Výškový profil" + ↑ascent/↓descent, area+line graf, min/peak popisky (462/727), km osa | preview |
 | 6 | Přepínač TA33/TA50 mění itinerář i staty | běh |
-| 7 | Žádný hardcoded hex/dp(Android) / hex/CGFloat(iOS) — vše přes tokeny | code review |
+| 7 | Žádný hardcoded hex/dp(Android) / hex/CGFloat(iOS) - vše přes tokeny | code review |
 | 8 | iOS-nativní provedení (ScrollView/Canvas/SF Symbols), ne klon Compose | code review |
 
 ---
@@ -51,12 +51,12 @@ data class DenikStop(
     val controlOrdinal: Int?, val status: StopStatus,
     val segmentKm: Double?,        // úsek k dalšímu stopu
     val timeText: String?,         // "07:12" (start) / "splněno" / null
-    val splitText: String = "—:—",// mezičas placeholder (dokud nemáme per-KP)
+    val splitText: String = "-:-",// mezičas placeholder (dokud nemáme per-KP)
     val isFinish: Boolean = false,
 )
 data class DenikUiState(
     val shortId: String = "", val distanceKm: Double = 0.0,
-    val startTimeText: String = "—", val finishTimeText: String = "—",
+    val startTimeText: String = "-", val finishTimeText: String = "-",
     val ascentMeters: Int = 0, val descentMeters: Int = 0,
     val elevation: ElevationProfile? = null,
     val stops: List<DenikStop> = emptyList(),
@@ -84,7 +84,7 @@ Registrace v Koinu + Swift accessor `denikViewModel()`.
 
 ## 4. IMPLEMENTATION STEPS
 
-> Nejdřív sdílený VM (Step 1), pak Android (2–3), pak iOS (4–5), pak ověření (6).
+> Nejdřív sdílený VM (Step 1), pak Android (2-3), pak iOS (4-5), pak ověření (6).
 
 ### Step 1: Sdílený DenikViewModel + UiState
 **Files**: `shared/.../presentation/DenikViewModel.kt` (+ modely v `domain/model/DenikUiState.kt`) (create/replace), `di/AppModule.kt` (register), `di/Koin.kt` (`denikViewModel()`).
@@ -93,11 +93,11 @@ Nahradí starý `RunLogViewModel` konzumovaný Deníkem (RunLogViewModel může 
 
 ### Step 2: Android komponenty (timeline uzel, elevační graf)
 **Files**: `androidApp/.../ui/denik/TimelineNode.kt`, `ElevationChart.kt` (create).
-`ElevationChart(profile)` — `Canvas` area+line+callouts+osa. `TimelineNode(status, kind, ordinal)` — swatch dle stavu.
+`ElevationChart(profile)` - `Canvas` area+line+callouts+osa. `TimelineNode(status, kind, ordinal)` - swatch dle stavu.
 **Done when**: `@Preview`.
 
 ### Step 3: Android Deník obrazovka
-**Files**: `androidApp/.../ui/denik/DenikContent.kt` (replace), `DenikScreen.kt` (replace — konzumuje DenikViewModel). Header (RouteSummary composable), timeline, elevace. Přepínač → `vm.bindSelected`.
+**Files**: `androidApp/.../ui/denik/DenikContent.kt` (replace), `DenikScreen.kt` (replace - konzumuje DenikViewModel). Header (RouteSummary composable), timeline, elevace. Přepínač → `vm.bindSelected`.
 **Done when**: `@Preview` (TA33 s během) + `:androidApp:assembleDebug` zelený; tab Deník ukazuje nový design.
 
 ### Step 4: iOS komponenty
@@ -105,7 +105,7 @@ Nahradí starý `RunLogViewModel` konzumovaný Deníkem (RunLogViewModel může 
 **Done when**: `#Preview`.
 
 ### Step 5: iOS Deník obrazovka
-**Files**: `iosApp/iosApp/UI/Denik/DenikView.swift` + `DenikViews.swift` (replace), `DenikModel.swift` (replace — konzumuje `denikViewModel()` přes SKIE). Header + timeline + elevace + přepínač.
+**Files**: `iosApp/iosApp/UI/Denik/DenikView.swift` + `DenikViews.swift` (replace), `DenikModel.swift` (replace - konzumuje `denikViewModel()` přes SKIE). Header + timeline + elevace + přepínač.
 **Done when**: framework link + `xcodebuild -scheme iosApp` zelené.
 
 ### Step 6: Ověření
@@ -116,8 +116,8 @@ Nahradí starý `RunLogViewModel` konzumovaný Deníkem (RunLogViewModel může 
 ## 5. EDGE CASES & ERRORS
 | Scenario | Expected | Handle |
 |---|---|---|
-| Vybraná trasa != aktivní běh | Náhled, vše UPCOMING, staty z katalogu, start `—` | status jen když routeId==activeRun.routeId |
-| Žádný běh | Vše UPCOMING, „—" časy | podmínka |
+| Vybraná trasa != aktivní běh | Náhled, vše UPCOMING, staty z katalogu, start `-` | status jen když routeId==activeRun.routeId |
+| Žádný běh | Vše UPCOMING, „-" časy | podmínka |
 | Elevation null (katalog chybí) | Skrýt profil kartu | `?.let` |
 | Poslední stop (cíl) | žádný úsek | segmentKm null u posledního |
 | Přepínač bez druhé trasy | disabled | canSwitch dle počtu tras |
@@ -126,8 +126,8 @@ Nahradí starý `RunLogViewModel` konzumovaný Deníkem (RunLogViewModel může 
 - Jen zobrazení lokálního/mock stavu; žádná citlivá data.
 
 ## 7. ASSUMPTIONS
-1. **RD-00 hotové** — `RouteItinerary`/`RouteCatalog`/`RouteCatalogRepository` + rich DevSeed existují.
-2. **Mezičas per KP** není v modelu → placeholder „—:—" (design to tak zobrazuje); reálné mezičasy = follow-up (FR-09 splits mapované na kontroly).
+1. **RD-00 hotové** - `RouteItinerary`/`RouteCatalog`/`RouteCatalogRepository` + rich DevSeed existují.
+2. **Mezičas per KP** není v modelu → placeholder „-:-" (design to tak zobrazuje); reálné mezičasy = follow-up (FR-09 splits mapované na kontroly).
 3. **Přepínač** mění jen zobrazenou trasu; nepřepíná aktivní běh.
 4. **Deník používá nový DenikViewModel**; `RunLogViewModel` může zůstat pro jiné použití.
 
@@ -174,11 +174,11 @@ xcodebuild -project iosApp/iosApp.xcodeproj -scheme iosApp -configuration Debug 
 | Approach | Pros | Cons | Selected? |
 |---|---|---|---|
 | **A. Nový sdílený DenikViewModel (katalog+běh), nativní UI** | Sdílená logika, věrný design, obě platformy konzistentní | Nový VM + přepis UI | ✅ |
-| B. Rozšířit RunLogViewModel | Méně nových tříd | LogUiState nemá km/úsek/elevaci/header → stejně přepis | — |
-| C. UI si samo skládá z katalogu+repo (bez VM) | Méně sdíleného | Duplikace logiky Android×iOS, netestovatelné | — |
+| B. Rozšířit RunLogViewModel | Méně nových tříd | LogUiState nemá km/úsek/elevaci/header → stejně přepis | - |
+| C. UI si samo skládá z katalogu+repo (bez VM) | Méně sdíleného | Duplikace logiky Android×iOS, netestovatelné | - |
 ### 12.2 Open Questions
-- [ ] **Mezičasy per kontrola** — Proposed: placeholder „—:—" teď; namapovat FR-09 splits na kontroly později.
-- [ ] **Náhled druhé trasy (TA50) bez běhu** — Proposed: vše UPCOMING; potvrdit UX.
+- [ ] **Mezičasy per kontrola** - Proposed: placeholder „-:-" teď; namapovat FR-09 splits na kontroly později.
+- [ ] **Náhled druhé trasy (TA50) bez běhu** - Proposed: vše UPCOMING; potvrdit UX.
 ### 12.3 Suggestions & Follow-ups
 - Mapa (RD-02), Profil (RD-03).
 - Reálné mezičasy z FR-09.

@@ -3,7 +3,7 @@
 # Module-independent (uses the stable Gradle path :androidApp), so it works even when
 # Android Studio can't resolve the IJ module for the Android App run config.
 #
-# Device selection (no toolbar dropdown for shell configs — that's Android App-only):
+# Device selection (no toolbar dropdown for shell configs - that's Android App-only):
 #   1. $ANDROID_SERIAL if set   2. the single connected device   3. otherwise lists them and exits.
 set -euo pipefail
 
@@ -33,7 +33,7 @@ elif [ "$count" -eq 0 ]; then
   echo "No device/emulator connected. Start one (Device Manager, or: emulator -avd ta33_test)." >&2
   exit 1
 else
-  echo "Multiple devices connected — set ANDROID_SERIAL to choose one:" >&2
+  echo "Multiple devices connected - set ANDROID_SERIAL to choose one:" >&2
   printf '%s\n' "$serials" | sed 's/^/  - /' >&2
   echo "e.g. ANDROID_SERIAL=$(printf '%s\n' "$serials" | head -1)   (Edit Configurations → Environment variables)" >&2
   exit 1

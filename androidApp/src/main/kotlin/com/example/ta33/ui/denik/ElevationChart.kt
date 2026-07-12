@@ -26,7 +26,7 @@ import com.example.ta33.ui.theme.Ta33Theme
 /**
  * Elevation profile chart (`ElevProfile`): filled area + line in the route colour, low/peak
  * callouts (leader + ring + "462 / 727" + "m n. m.") and a km axis with gridlines. Drawn on a
- * [Canvas] scaled from the design's 324×172 viewport so proportions match the mockup — including
+ * [Canvas] scaled from the design's 324×172 viewport so proportions match the mockup - including
  * the text, whose size tracks the viewport (fixed sp would over-scale and clip the top callout).
  */
 @Composable
@@ -38,7 +38,7 @@ fun ElevationChart(
     val colors = Ta33Theme.colors
     val measurer = rememberTextMeasurer()
 
-    // DrawScope is not composable — capture every colour/style up front. Font sizes are applied
+    // DrawScope is not composable - capture every colour/style up front. Font sizes are applied
     // inside the Canvas so they scale with the viewport height.
     val gridColor = MaterialTheme.colorScheme.surfaceVariant // slate-100 divider
     val leaderColor = MaterialTheme.colorScheme.outline       // slate-300

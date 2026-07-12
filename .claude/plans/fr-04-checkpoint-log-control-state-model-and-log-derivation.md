@@ -1,34 +1,34 @@
-# FR-04 Deník Kontrol — Canonical Control-State Model & Pure Log Derivation (Logic Only)
+# FR-04 Deník Kontrol - Canonical Control-State Model & Pure Log Derivation (Logic Only)
 
-> **Summary**: Turn FR-02's provisional log sketch into the real *deník kontrol* by introducing one canonical `ControlPointState` enum (LOCKED / ACTIVE / DONE / FINISH), a pure deterministic `deriveLog(controls, collected, run) -> LogUiState` function (per-control state, `collectedCount`/`totalCount` "2 z 5", `nextControl`, proof-of-completion), and refining FR-02's existing `ObserveRunLogUseCase` + `RunLogViewModel` to expose it as `StateFlow<LogUiState>` — all pure, headless, unit-tested, no UI.
+> **Summary**: Turn FR-02's provisional log sketch into the real *deník kontrol* by introducing one canonical `ControlPointState` enum (LOCKED / ACTIVE / DONE / FINISH), a pure deterministic `deriveLog(controls, collected, run) -> LogUiState` function (per-control state, `collectedCount`/`totalCount` "2 z 5", `nextControl`, proof-of-completion), and refining FR-02's existing `ObserveRunLogUseCase` + `RunLogViewModel` to expose it as `StateFlow<LogUiState>` - all pure, headless, unit-tested, no UI.
 
 ---
 
 ## 1. PROBLEM & SOLUTION
 
 ### 1.1 Problem Statement
-A TA33 participant needs a *deník* (log) that, at any moment on the trail, shows the state of every control on their route, how many they have collected out of the total (e.g. "2 z 5"), which control is next, and — at the finish — whether they have completed the whole route (the "green" proof of completion). This must be correct purely from on-device data and work with no signal. FR-02 only sketched a rough log (a provisional `State` enum COLLECTED/NEXT/PENDING with no notion of a "finish" state and no single reusable derivation function), which is not the canonical state model the design system defines.
+A TA33 participant needs a *deník* (log) that, at any moment on the trail, shows the state of every control on their route, how many they have collected out of the total (e.g. "2 z 5"), which control is next, and - at the finish - whether they have completed the whole route (the "green" proof of completion). This must be correct purely from on-device data and work with no signal. FR-02 only sketched a rough log (a provisional `State` enum COLLECTED/NEXT/PENDING with no notion of a "finish" state and no single reusable derivation function), which is not the canonical state model the design system defines.
 
 ### 1.2 Solution Overview
-Consolidate all deník logic into one canonical, pure state model layered on the **existing** FR-02 data foundation and FR-03 ordered-controls seam — no new persistence, no duplicate ViewModel. Introduce a single `ControlPointState` enum (LOCKED/ACTIVE/DONE/FINISH), a pure `ControlLogDeriver.deriveLog(...)` that maps ordered controls + collected controls + the run into a `LogUiState` (per-control state, counts, next control, proof-of-completion), and **refine** FR-02's `ObserveRunLogUseCase` and `RunLogViewModel` to produce/expose it. Everything is deterministic and table-tested in `commonTest`.
+Consolidate all deník logic into one canonical, pure state model layered on the **existing** FR-02 data foundation and FR-03 ordered-controls seam - no new persistence, no duplicate ViewModel. Introduce a single `ControlPointState` enum (LOCKED/ACTIVE/DONE/FINISH), a pure `ControlLogDeriver.deriveLog(...)` that maps ordered controls + collected controls + the run into a `LogUiState` (per-control state, counts, next control, proof-of-completion), and **refine** FR-02's `ObserveRunLogUseCase` and `RunLogViewModel` to produce/expose it. Everything is deterministic and table-tested in `commonTest`.
 
 ### 1.3 Scope: What This IS
-- **Canonical enum** (`domain/model`): `ControlPointState { LOCKED, ACTIVE, DONE, FINISH }` — the single logical state model (colors are UI, out of scope).
-- **Pure derivation** (`domain/log`): `ControlLogDeriver.deriveLog(controls, collected, run): LogUiState` — deterministic, no repos, no coroutines, no platform APIs.
+- **Canonical enum** (`domain/model`): `ControlPointState { LOCKED, ACTIVE, DONE, FINISH }` - the single logical state model (colors are UI, out of scope).
+- **Pure derivation** (`domain/log`): `ControlLogDeriver.deriveLog(controls, collected, run): LogUiState` - deterministic, no repos, no coroutines, no platform APIs.
 - **Refined read models** (`domain/model`): `LogUiState` (entries + `collectedCount`/`totalCount` + `nextControl` + `finishState` + `isComplete`/`isRunFinished`) and `RunLogEntry` re-typed to carry `state: ControlPointState` and per-control split time.
 - **Refined use-case** (`domain/usecase`): the **same** `ObserveRunLogUseCase` (FR-02) rewired to `combine(...)` FR-03 ordered controls + FR-02 run/collected Flows and delegate to `deriveLog`, emitting `Flow<LogUiState>`.
-- **Refined ViewModel** (`presentation`): the **same** `RunLogViewModel` (FR-02) exposing `StateFlow<LogUiState>` (headless — no UI consumes it yet).
+- **Refined ViewModel** (`presentation`): the **same** `RunLogViewModel` (FR-02) exposing `StateFlow<LogUiState>` (headless - no UI consumes it yet).
 - **Proof-of-completion** modeled as a pure derived flag (`isComplete`) from collection completeness, plus the terminal `FINISH` state.
 - **Table-driven unit tests** (`commonTest`) over every state combination.
 
 ### 1.4 Scope: What This IS NOT
-- **No UI whatsoever** — no Compose/SwiftUI screens, no list rows, no colors, no "green screen" visual, no Czech pluralization of "2 z 5" as final copy. UI + localization are a deliberately deferred later phase. Read models expose raw fields (+ a dev-only convenience label).
-- **No GPS acquisition / geofence collection flow** — that is **FR-08**. FR-04 only *consumes* the `CollectedControl` rows FR-08 will produce.
-- **No QR scanning / timing capture** — that is **FR-09**. FR-04 only *consumes* `RunSession.startedAtMillis`/`finishedAtMillis` + `CollectedControl.collectedAtMillis` already stored by FR-02.
-- **No new persistence / schema / repositories** — reuses FR-02 `RunRepository`/`RouteRepository`/`Ta33Database` and FR-03 seams as-is. No new SQLDelight tables.
-- **No redefinition of FR-01/FR-02/FR-03** — `Route`, `ControlPoint`, `RunSession`, `CollectedControl`, `observeRouteWithControls`, `ActiveRouteResolver`, `observeRun`, `observeCollected` are **referenced**, not duplicated.
-- **No new Gradle modules** — everything lives in `:shared` as package layers (project-stack §12). Base package `com.example.ta33`.
-- **No new external dependencies** — `kotlinx-coroutines-test` already added by FR-02.
+- **No UI whatsoever** - no Compose/SwiftUI screens, no list rows, no colors, no "green screen" visual, no Czech pluralization of "2 z 5" as final copy. UI + localization are a deliberately deferred later phase. Read models expose raw fields (+ a dev-only convenience label).
+- **No GPS acquisition / geofence collection flow** - that is **FR-08**. FR-04 only *consumes* the `CollectedControl` rows FR-08 will produce.
+- **No QR scanning / timing capture** - that is **FR-09**. FR-04 only *consumes* `RunSession.startedAtMillis`/`finishedAtMillis` + `CollectedControl.collectedAtMillis` already stored by FR-02.
+- **No new persistence / schema / repositories** - reuses FR-02 `RunRepository`/`RouteRepository`/`Ta33Database` and FR-03 seams as-is. No new SQLDelight tables.
+- **No redefinition of FR-01/FR-02/FR-03** - `Route`, `ControlPoint`, `RunSession`, `CollectedControl`, `observeRouteWithControls`, `ActiveRouteResolver`, `observeRun`, `observeCollected` are **referenced**, not duplicated.
+- **No new Gradle modules** - everything lives in `:shared` as package layers (project-stack §12). Base package `com.example.ta33`.
+- **No new external dependencies** - `kotlinx-coroutines-test` already added by FR-02.
 
 ---
 
@@ -43,12 +43,12 @@ Implementation is COMPLETE when ALL criteria are met:
 | 3 | `deriveLog` marks each control `DONE` if collected, `ACTIVE` for the first uncollected control by `ordinal`, `LOCKED` for later uncollected controls | `ControlLogDeriverTest` table cases (nothing / partial / all) |
 | 4 | `collectedCount`/`totalCount` are correct and the convenience label renders "2 z 5" for 2-of-5 | `ControlLogDeriverTest` progress cases |
 | 5 | `nextControl` is the first uncollected control in ordinal order, and `null` when all collected | `ControlLogDeriverTest` |
-| 6 | Order is respected even when controls are collected out of order (e.g. c2 collected before c1) — c1 stays `ACTIVE`, c2 `DONE` | `ControlLogDeriverTest` out-of-order case |
+| 6 | Order is respected even when controls are collected out of order (e.g. c2 collected before c1) - c1 stays `ACTIVE`, c2 `DONE` | `ControlLogDeriverTest` out-of-order case |
 | 7 | Proof-of-completion `isComplete` is `true` iff `totalCount > 0` and all controls collected; `finishState` is `FINISH` when finished, `ACTIVE` when all collected but run not finished, else `LOCKED` | `ControlLogDeriverTest` completion cases |
 | 8 | Per-control `splitMillis` = `collectedAtMillis − run.startedAtMillis` when both known, else `null` | `ControlLogDeriverTest` split case |
 | 9 | Empty route (0 controls) yields empty entries, `nextControl = null`, `isComplete = false`, `finishState = LOCKED`, "0 z 0", no crash | `ControlLogDeriverTest` empty case |
 | 10 | `RunLogViewModel` exposes `StateFlow<LogUiState>`; state recomputes when a collection is added | `RunLogViewModelTest` (`runTest` + fake repos feeding `MutableStateFlow`) |
-| 11 | No duplicate ViewModel/use-case introduced — FR-02's `RunLogViewModel`/`ObserveRunLogUseCase` are the ones refined | Code review + `grep` (one class each) |
+| 11 | No duplicate ViewModel/use-case introduced - FR-02's `RunLogViewModel`/`ObserveRunLogUseCase` are the ones refined | Code review + `grep` (one class each) |
 | 12 | `./gradlew :shared:allTests` green | Run tests |
 
 ---
@@ -58,7 +58,7 @@ Implementation is COMPLETE when ALL criteria are met:
 ### 3.1 Architecture
 
 ```
-        NATIVE UI (later phase — NOT built here)
+        NATIVE UI (later phase - NOT built here)
         reads StateFlow<LogUiState>, calls bind(runId, routeId)
    ═════════════════ SHARED CORE (:shared, commonMain) ═════════════════
                        presentation/
@@ -93,7 +93,7 @@ Implementation is COMPLETE when ALL criteria are met:
 |----------|--------|-----------|
 | State model | **One canonical enum** `ControlPointState { LOCKED, ACTIVE, DONE, FINISH }` in `domain/model` | The design system names these four as the key control concept; a single top-level enum prevents drift. Replaces FR-02's provisional `RunLogEntry.State` |
 | Derivation home | **Pure object** `ControlLogDeriver.deriveLog(...)` in `domain/log` (no repos/coroutines) | Mirrors FR-03's pure `ActiveRouteResolver`; trivially unit-testable, deterministic, table-driven |
-| Where log logic lives (reconciliation) | **Refine FR-02's `ObserveRunLogUseCase` + `RunLogViewModel` in place** — no new/parallel classes | Task mandate: unify the deník into FR-02's sketch, don't duplicate. The use-case swaps its inline assembly for `deriveLog` |
+| Where log logic lives (reconciliation) | **Refine FR-02's `ObserveRunLogUseCase` + `RunLogViewModel` in place** - no new/parallel classes | Task mandate: unify the deník into FR-02's sketch, don't duplicate. The use-case swaps its inline assembly for `deriveLog` |
 | `LogUiState` location | **`domain/model`** (a domain read model), not `presentation` | So the pure `deriveLog` can *return* it without depending on the presentation layer; the ViewModel exposes it directly. Refines/replaces FR-02's `presentation`-local `RunLogUiState` |
 | Ordered controls source | **Consume FR-03** `RouteRepository.observeRouteWithControls(routeId)` (already `ORDER BY ordinal`) | FR-03 owns ordering; FR-04 re-sorts only defensively inside `deriveLog` |
 | ACTIVE selection | **First uncollected control by `ordinal`** (not GPS proximity) | Deník is order-based; proximity "next" is a map concern (FR-06), addable later with no model change |
@@ -103,7 +103,7 @@ Implementation is COMPLETE when ALL criteria are met:
 | `collected` param type | `List<CollectedControl>` (has `controlId` + `collectedAtMillis`) | Needed for split times; pure function builds a `controlId → collectedAt` map internally |
 | Progress label | Raw `collectedCount`/`totalCount` are canonical; a convenience `progressLabel` ("2 z 5") is a dev aid only | Final Czech pluralization/units are UI/localization (deferred), consistent with FR-03's stance |
 | ViewModel style | Keep FR-02's `MutableStateFlow` + `asStateFlow`, `viewModelScope`, `bind(runId, routeId)` | Consistency with FR-01/02/03 ViewModels |
-| DI | **No new Koin registration** — FR-02 already registers `ObserveRunLogUseCase` + `RunLogViewModel`; `ControlLogDeriver` is a stateless `object` (no injection) | Minimal surface; nothing new to wire |
+| DI | **No new Koin registration** - FR-02 already registers `ObserveRunLogUseCase` + `RunLogViewModel`; `ControlLogDeriver` is a stateless `object` (no injection) | Minimal surface; nothing new to wire |
 
 ---
 
@@ -145,7 +145,7 @@ package com.example.ta33.domain.model
 /** One deník row: a control plus its derived state and (optional) split time. */
 data class RunLogEntry(
     val control: ControlPoint,
-    val state: ControlPointState,       // was RunLogEntry.State (COLLECTED/NEXT/PENDING) — replaced
+    val state: ControlPointState,       // was RunLogEntry.State (COLLECTED/NEXT/PENDING) - replaced
     val collectedAtMillis: Long? = null, // null unless DONE
     val splitMillis: Long? = null,       // collectedAt - run.startedAt, null unless both known
 )
@@ -181,7 +181,7 @@ data class LogUiState(
     val progressLabel: String get() = "$collectedCount z $totalCount" // e.g. "2 z 5"
 }
 ```
-> This **replaces** FR-02's `presentation`-local `RunLogUiState` and **absorbs** FR-02's `RunProgress` (counts move here). Remove `domain/model/RunProgress.kt` if present (see Section 10) — or keep it only if referenced elsewhere; there should be no such reference.
+> This **replaces** FR-02's `presentation`-local `RunLogUiState` and **absorbs** FR-02's `RunProgress` (counts move here). Remove `domain/model/RunProgress.kt` if present (see Section 10) - or keep it only if referenced elsewhere; there should be no such reference.
 
 **Done when**: File compiles.
 
@@ -339,7 +339,7 @@ class RunLogViewModel(
 **Goal**: Confirm the refined types still resolve; expose a Swift accessor if FR-02 didn't.
 **Files**: `di/AppModule.kt` (verify), `di/Koin.kt` (verify/add `runLogViewModel()` if missing)
 
-- Confirm `appModule` still contains `factory { ObserveRunLogUseCase(get(), get()) }` and `factory { RunLogViewModel(get()) }` from FR-02 (arities unchanged). `ControlLogDeriver` is an `object` — **no** registration.
+- Confirm `appModule` still contains `factory { ObserveRunLogUseCase(get(), get()) }` and `factory { RunLogViewModel(get()) }` from FR-02 (arities unchanged). `ControlLogDeriver` is an `object` - **no** registration.
 - If `di/Koin.kt` lacks a Swift `ViewModelProvider` accessor, add (mirrors FR-03):
 ```kotlin
 fun runLogViewModel(): RunLogViewModel = KoinPlatform.getKoin().get()
@@ -351,16 +351,16 @@ fun runLogViewModel(): RunLogViewModel = KoinPlatform.getKoin().get()
 ### Step 8: Table-driven unit tests
 **Goal**: Lock every state combination of the pure deriver + a ViewModel reactivity test.
 **Files**: under `shared/src/commonTest/kotlin/com/example/ta33/`
-- `ControlLogDeriverTest.kt` (new) — table-driven; each row: input controls (ordinals), collected control ids (+ timestamps), run (started/finished), expected per-entry states, `collectedCount`/`totalCount`, `nextControl` id, `isComplete`, `finishState`, split values. Cases:
+- `ControlLogDeriverTest.kt` (new) - table-driven; each row: input controls (ordinals), collected control ids (+ timestamps), run (started/finished), expected per-entry states, `collectedCount`/`totalCount`, `nextControl` id, `isComplete`, `finishState`, split values. Cases:
   1. **Nothing collected** (5 controls) → `[ACTIVE, LOCKED, LOCKED, LOCKED, LOCKED]`, "0 z 5", next = c1, `isComplete=false`, `finishState=LOCKED`.
   2. **Partial** (2 of 5, c1+c2) → `[DONE, DONE, ACTIVE, LOCKED, LOCKED]`, "2 z 5", next = c3, `finishState=LOCKED`.
   3. **All collected, run not finished** → `[DONE×5]`, "5 z 5", next = `null`, `isComplete=true`, `finishState=ACTIVE`.
   4. **All collected, run finished** (finishedAt set) → same entries, `isRunFinished=true`, `finishState=FINISH`.
   5. **Out-of-order** (c2 collected, c1 not) → c1 `ACTIVE`, c2 `DONE`, rest `LOCKED`; next = c1.
   6. **Empty route** (0 controls) → `entries=[]`, "0 z 0", next=`null`, `isComplete=false`, `finishState=LOCKED`, no crash.
-  7. **Split time** — c1 collected at start+120000, run started → entry `splitMillis == 120000`; when `run == null` → `splitMillis == null`.
-  8. **Unsorted input** — controls passed in shuffled ordinal order → entries come back sorted by ordinal (defensive sort).
-- `RunLogViewModelTest.kt` (new/refined) — `runTest` + `Dispatchers.setMain(StandardTestDispatcher())`, fake `RouteRepository`/`RunRepository` backed by `MutableStateFlow`: after `bind(runId, routeId)` state reflects derived `LogUiState`; adding a `CollectedControl` to the fake collected Flow flips the right entry to `DONE` and advances `nextControl`; `loading` is `false` after first emission.
+  7. **Split time** - c1 collected at start+120000, run started → entry `splitMillis == 120000`; when `run == null` → `splitMillis == null`.
+  8. **Unsorted input** - controls passed in shuffled ordinal order → entries come back sorted by ordinal (defensive sort).
+- `RunLogViewModelTest.kt` (new/refined) - `runTest` + `Dispatchers.setMain(StandardTestDispatcher())`, fake `RouteRepository`/`RunRepository` backed by `MutableStateFlow`: after `bind(runId, routeId)` state reflects derived `LogUiState`; adding a `CollectedControl` to the fake collected Flow flips the right entry to `DONE` and advances `nextControl`; `loading` is `false` after first emission.
 
 > Prefer fakes over a real DB driver (mirrors FR-02/FR-03). Reuse FR-02/FR-03 fakes if present.
 
@@ -388,8 +388,8 @@ fun runLogViewModel(): RunLogViewModel = KoinPlatform.getKoin().get()
 ## 6. SECURITY CONSIDERATIONS
 
 - **Input validation**: All inputs are app-generated (controls from content, collected rows from FR-08, run from FR-02). `runId`/`routeId` arrive from FR-01 nav args, not free user input. `deriveLog` is total (no throws) and tolerates empty/orphan/duplicate inputs.
-- **Auth/Access control**: None in Etapa 1 — anonymous local participant; no tokens (Etapa 2, Keystore/Keychain per stack §4).
-- **Sensitive data**: The deník exposes collection timestamps/splits (personal data) but stays **on-device only** — pure in-memory derivation over local SQLDelight data; no upload in Etapa 1.
+- **Auth/Access control**: None in Etapa 1 - anonymous local participant; no tokens (Etapa 2, Keystore/Keychain per stack §4).
+- **Sensitive data**: The deník exposes collection timestamps/splits (personal data) but stays **on-device only** - pure in-memory derivation over local SQLDelight data; no upload in Etapa 1.
 - **Logging**: Napier at debug for derivation summaries only (counts/state transitions). Do **not** log full timestamp/split streams at info level; never log to persistent files.
 
 ---
@@ -401,11 +401,11 @@ fun runLogViewModel(): RunLogViewModel = KoinPlatform.getKoin().get()
 1. **FR-02 and FR-03 are implemented first** and their types are **referenced, not duplicated** (`RunSession`, `CollectedControl`, `RunRepository.observeRun`/`observeCollected`, `RouteRepository.observeRouteWithControls`, `ObserveRunLogUseCase`, `RunLogViewModel`, `appModule`, `kotlinx-coroutines-test`). If unmerged: define the canonical types here and fold the refinements into those FRs.
 2. **"NEXT" is order-based** (first uncollected by `ordinal`), not GPS proximity. Proximity "next" is a map concern (FR-06) and can be layered later without a model change.
 3. **Proof-of-completion = all controls collected** (`isComplete`), matching zadani's *důkaz projití celé trasy*. Finish-QR timing (`isRunFinished`, FR-09) is surfaced but is not the proof. If the organizer wants proof to require the finish QR too, tighten to `isComplete && isRunFinished` in one place.
-4. **`FINISH` models a conceptual finish step** (LOCKED → ACTIVE → FINISH), not a real DB control row. No synthetic control is persisted; it is a derived `finishState` field. If a visible finish *row* is later wanted, append a synthetic entry in the UI/VM layer — no schema change.
+4. **`FINISH` models a conceptual finish step** (LOCKED → ACTIVE → FINISH), not a real DB control row. No synthetic control is persisted; it is a derived `finishState` field. If a visible finish *row* is later wanted, append a synthetic entry in the UI/VM layer - no schema change.
 5. **`collected` is `List<CollectedControl>`** (needs `collectedAtMillis` for splits). A convenience `Set<String>` overload is unnecessary and omitted.
 6. **The "2 z 5" label is a dev convenience**; final Czech pluralization/units are UI/localization (deferred), consistent with FR-03.
 7. **`LogUiState` lives in `domain/model`** so the pure deriver can return it; it replaces FR-02's `presentation`-local `RunLogUiState` and absorbs `RunProgress`.
-8. **Only Android + iOS targets** — pure Kotlin, no dispatcher/platform concerns in the deriver; `Dispatchers.setMain` used only in the VM test.
+8. **Only Android + iOS targets** - pure Kotlin, no dispatcher/platform concerns in the deriver; `Dispatchers.setMain` used only in the VM test.
 9. **`bind(runId, routeId)` stays the entry point**; wiring the *active* run/route is FR-01's responsibility (see Open Questions).
 
 > Open questions live in Section 12.
@@ -415,19 +415,19 @@ fun runLogViewModel(): RunLogViewModel = KoinPlatform.getKoin().get()
 ## 8. QUICK REFERENCE
 
 ### Files to Modify
-- `shared/src/commonMain/kotlin/com/example/ta33/domain/model/RunLogEntry.kt` — re-type `state` to `ControlPointState`; drop nested `State`; add `splitMillis`.
-- `shared/src/commonMain/kotlin/com/example/ta33/domain/usecase/ObserveRunLogUseCase.kt` — `combine(FR-03 controls, FR-02 run, FR-02 collected)` → `deriveLog` → `Flow<LogUiState>`.
-- `shared/src/commonMain/kotlin/com/example/ta33/presentation/RunLogViewModel.kt` — expose `StateFlow<LogUiState>`; delete local `RunLogUiState`.
-- `shared/src/commonMain/kotlin/com/example/ta33/di/AppModule.kt` — verify existing registrations still resolve (no change expected).
-- `shared/src/commonMain/kotlin/com/example/ta33/di/Koin.kt` — add `runLogViewModel()` Swift accessor if missing.
-- *(Remove)* `shared/src/commonMain/kotlin/com/example/ta33/domain/model/RunProgress.kt` — absorbed into `LogUiState` (only if unreferenced elsewhere).
+- `shared/src/commonMain/kotlin/com/example/ta33/domain/model/RunLogEntry.kt` - re-type `state` to `ControlPointState`; drop nested `State`; add `splitMillis`.
+- `shared/src/commonMain/kotlin/com/example/ta33/domain/usecase/ObserveRunLogUseCase.kt` - `combine(FR-03 controls, FR-02 run, FR-02 collected)` → `deriveLog` → `Flow<LogUiState>`.
+- `shared/src/commonMain/kotlin/com/example/ta33/presentation/RunLogViewModel.kt` - expose `StateFlow<LogUiState>`; delete local `RunLogUiState`.
+- `shared/src/commonMain/kotlin/com/example/ta33/di/AppModule.kt` - verify existing registrations still resolve (no change expected).
+- `shared/src/commonMain/kotlin/com/example/ta33/di/Koin.kt` - add `runLogViewModel()` Swift accessor if missing.
+- *(Remove)* `shared/src/commonMain/kotlin/com/example/ta33/domain/model/RunProgress.kt` - absorbed into `LogUiState` (only if unreferenced elsewhere).
 
 ### Files to Create
-- `domain/model/ControlPointState.kt` — canonical `LOCKED/ACTIVE/DONE/FINISH` enum.
-- `domain/model/LogUiState.kt` — refined deník state read model.
-- `domain/log/ControlLogDeriver.kt` — pure `deriveLog(...)`.
-- `commonTest/…/ControlLogDeriverTest.kt` — table-driven state tests.
-- `commonTest/…/RunLogViewModelTest.kt` — reactive VM test (new or refined from FR-02).
+- `domain/model/ControlPointState.kt` - canonical `LOCKED/ACTIVE/DONE/FINISH` enum.
+- `domain/model/LogUiState.kt` - refined deník state read model.
+- `domain/log/ControlLogDeriver.kt` - pure `deriveLog(...)`.
+- `commonTest/…/ControlLogDeriverTest.kt` - table-driven state tests.
+- `commonTest/…/RunLogViewModelTest.kt` - reactive VM test (new or refined from FR-02).
 
 ### Dependencies
 - **None new.** (Already present via FR-02: SQLDelight 2.1.0 + coroutines-extensions + drivers, Koin 4.1.0, coroutines-core, lifecycle-viewmodel, `kotlinx-coroutines-test`.)
@@ -476,25 +476,25 @@ xcodebuild -project iosApp/iosApp.xcodeproj -scheme iosApp -configuration Debug 
 | Approach | Pros | Cons | Selected? |
 |----------|------|------|-----------|
 | **A. Canonical `ControlPointState` enum + pure `deriveLog` returning a domain `LogUiState`; refine FR-02's use-case + ViewModel in place** | One state model, one derivation, no duplicate classes; trivially table-testable; consumes FR-02/FR-03 seams; no new deps/schema | Touches (refines) three FR-02 files | ✅ |
-| B. **New parallel `CheckpointLogViewModel`/`DerivedLogUseCase`** alongside FR-02's | No edits to FR-02 files | Two ViewModels/use-cases for one deník → drift, duplicated wiring; violates the reconciliation mandate | — |
-| C. **Keep derivation inline in the use-case** (no `ControlLogDeriver`) | Fewer files | Not unit-testable without coroutines/fakes; couples pure logic to Flow plumbing; harder table tests | — |
-| D. **Persist the derived state** (a `LogState` table) | Cheap reads | Redundant with source-of-truth collected rows; risks staleness; needless schema/migration; deník is a pure projection | — |
+| B. **New parallel `CheckpointLogViewModel`/`DerivedLogUseCase`** alongside FR-02's | No edits to FR-02 files | Two ViewModels/use-cases for one deník → drift, duplicated wiring; violates the reconciliation mandate | - |
+| C. **Keep derivation inline in the use-case** (no `ControlLogDeriver`) | Fewer files | Not unit-testable without coroutines/fakes; couples pure logic to Flow plumbing; harder table tests | - |
+| D. **Persist the derived state** (a `LogState` table) | Cheap reads | Redundant with source-of-truth collected rows; risks staleness; needless schema/migration; deník is a pure projection | - |
 
 **Why the selected approach won**: A single canonical enum + one pure, deterministic function gives the deník exactly one source of truth, satisfies the "unify, don't duplicate" mandate by refining FR-02's existing use-case/ViewModel, and stays fully unit-testable in shared Kotlin with zero new dependencies, schema, or UI.
 
 ### 12.2 Open Questions
 
-- [ ] **Should `bind(...)` auto-resolve the active run + route** (via FR-01 `ActiveRouteResolver` + FR-02 active-run) instead of taking explicit ids? — Proposed direction: keep explicit `bind(runId, routeId)` (FR-01 supplies them from app state); add a `bindActive()` convenience only if the UI phase shows it's needed, to avoid `RunRepository`/resolver coupling in FR-04.
-- [ ] **Does proof-of-completion require the finish QR (FR-09) too, or just all controls collected?** — Proposed direction: proof = all controls collected (`isComplete`); expose `isRunFinished` separately. Flip to `isComplete && isRunFinished` in the single `finishState`/proof site if the organizer requires the finish scan for the "green" proof.
-- [ ] **Should the finish be a visible synthetic log row (`FINISH` entry) or only a `finishState` field?** — Proposed direction: field only for now; if the design wants a finish row in the list, append a synthetic entry in the UI/VM layer — no domain/schema change.
-- [ ] **Is a Czech-pluralized progress label ("2 z 5" vs "2 z 5 kontrol") needed in the domain?** — Proposed direction: no; keep raw counts canonical, format in UI/localization (Compose resources) during the UI phase.
+- [ ] **Should `bind(...)` auto-resolve the active run + route** (via FR-01 `ActiveRouteResolver` + FR-02 active-run) instead of taking explicit ids? - Proposed direction: keep explicit `bind(runId, routeId)` (FR-01 supplies them from app state); add a `bindActive()` convenience only if the UI phase shows it's needed, to avoid `RunRepository`/resolver coupling in FR-04.
+- [ ] **Does proof-of-completion require the finish QR (FR-09) too, or just all controls collected?** - Proposed direction: proof = all controls collected (`isComplete`); expose `isRunFinished` separately. Flip to `isComplete && isRunFinished` in the single `finishState`/proof site if the organizer requires the finish scan for the "green" proof.
+- [ ] **Should the finish be a visible synthetic log row (`FINISH` entry) or only a `finishState` field?** - Proposed direction: field only for now; if the design wants a finish row in the list, append a synthetic entry in the UI/VM layer - no domain/schema change.
+- [ ] **Is a Czech-pluralized progress label ("2 z 5" vs "2 z 5 kontrol") needed in the domain?** - Proposed direction: no; keep raw counts canonical, format in UI/localization (Compose resources) during the UI phase.
 
 ### 12.3 Suggestions & Follow-ups
 
 - When the **UI phase** lands, map `ControlPointState` → design-system colors and the `isComplete` proof → the "green" finish screen; the logic here already yields everything the screen needs.
-- When **FR-08** lands (GPS collection), it only needs to insert `CollectedControl` rows — the deník updates reactively with no FR-04 change.
+- When **FR-08** lands (GPS collection), it only needs to insert `CollectedControl` rows - the deník updates reactively with no FR-04 change.
 - When **FR-09** lands (QR timing), setting `RunSession.finishedAtMillis` automatically flips `finishState` to `FINISH`; no FR-04 change.
-- Add a **JVM SQLite driver** integration test (`androidHostTest`) asserting `deriveLog` over real `observeRouteWithControls` + `observeCollected` end-to-end — good coverage, out of scope here.
+- Add a **JVM SQLite driver** integration test (`androidHostTest`) asserting `deriveLog` over real `observeRouteWithControls` + `observeCollected` end-to-end - good coverage, out of scope here.
 - Consider a shared **`ProgressFormatter`** in the UI/localization layer (not domain) for "X z Y" pluralization across FR-04/FR-10.
 
 > Section 9 (Design Reference) omitted: this is logic-only work with no UI/visual spec (design-system colors are explicitly out of scope). Section 10 included: FR-04 refines/corrects FR-02's provisional log sketch.

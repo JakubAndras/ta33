@@ -28,7 +28,7 @@ data class ProximityEvaluation(
  *  - Enter: a fresh control becomes pending at distance <= radiusMeters; it is offered only after
  *    config.minConsecutiveFixes consecutive in-range fixes (debounce).
  *  - Exit hysteresis: an already-offered control stays offered until distance > radius + exitMargin.
- *  - Any-order: only "uncollected" filters candidates — ordinal is irrelevant here.
+ *  - Any-order: only "uncollected" filters candidates - ordinal is irrelevant here.
  */
 class ProximityEvaluator(private val config: GeofenceConfig = GeofenceConfig()) {
 

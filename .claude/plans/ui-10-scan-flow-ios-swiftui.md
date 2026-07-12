@@ -1,13 +1,13 @@
-# UI-10 — Scan flow: QR sken + sběr kontroly + Splnění (iOS SwiftUI)
+# UI-10 - Scan flow: QR sken + sběr kontroly + Splnění (iOS SwiftUI)
 
-> **Summary**: iOS scan flow (zrcadlo Androidu ui-09) — QR scan přes `.fullScreenCover` (start/cíl, FR-09) spouštěný scan tlačítkem, nabídka sběru kontroly (FR-08) a zelená Splnění obrazovka. Kamera simulovaná, reálná AVFoundation/Vision je follow-up. Nativní SwiftUI.
+> **Summary**: iOS scan flow (zrcadlo Androidu ui-09) - QR scan přes `.fullScreenCover` (start/cíl, FR-09) spouštěný scan tlačítkem, nabídka sběru kontroly (FR-08) a zelená Splnění obrazovka. Kamera simulovaná, reálná AVFoundation/Vision je follow-up. Nativní SwiftUI.
 
 ---
 
 ## 1. PROBLEM & SOLUTION
 
 ### 1.1 Problem Statement
-Scan tlačítko v iOS shellu (ui-04) má jen stub `onScan`. FR-09 (`TimingViewModel`) a FR-08 (`ControlCollectionViewModel`) jsou hotové a nespotřebované — chybí scan obrazovka, nabídka sběru a Splnění.
+Scan tlačítko v iOS shellu (ui-04) má jen stub `onScan`. FR-09 (`TimingViewModel`) a FR-08 (`ControlCollectionViewModel`) jsou hotové a nespotřebované - chybí scan obrazovka, nabídka sběru a Splnění.
 
 ### 1.2 Solution Overview
 `RootView` (nebo shell wrapper) drží `TimingViewModel` + `ControlCollectionViewModel` (SKIE) bound na aktivní běh. Scan tlačítko otevře `ScanView` přes `.fullScreenCover` (slate-900, oranžový rámeček + pulzující linka; kamera zástupná; tlačítka „Simulovat start/cíl QR" → `onQrScanned`). Když `candidate != nil`, ukáže se `CollectionOfferView` (nativní overlay/sheet) → `confirm()`. Při `JustCollected` se přes `.fullScreenCover` ukáže `SplneniView` (zelená). Nativní SwiftUI.
@@ -20,8 +20,8 @@ Scan tlačítko v iOS shellu (ui-04) má jen stub `onScan`. FR-09 (`TimingViewMo
 
 ### 1.4 Scope: What This IS NOT
 - **Android** (ui-09).
-- **Reálná kamera** (AVFoundation/Vision) + oprávnění — follow-up (device); teď simulace.
-- **Reálný GPS candidate** — device.
+- **Reálná kamera** (AVFoundation/Vision) + oprávnění - follow-up (device); teď simulace.
+- **Reálný GPS candidate** - device.
 - Mapa, ostatní obrazovky.
 
 ---
@@ -37,8 +37,8 @@ Scan tlačítko v iOS shellu (ui-04) má jen stub `onScan`. FR-09 (`TimingViewMo
 | 6 | Špatná trasa / cizí QR → hláška | Preview |
 | 7 | `candidate != nil` → `CollectionOfferView` (název + vzdálenost); „Sebrat" → `confirm()` | Preview |
 | 8 | `lastResult == JustCollected` → `SplneniView` (zelená, název, čas); „Pokračovat" zavře | Preview |
-| 9 | Žádný hardcoded hex/CGFloat — vše přes tokeny | code review |
-| 10 | Runtime na simulátoru — DEFERRED na Mac | manuální |
+| 9 | Žádný hardcoded hex/CGFloat - vše přes tokeny | code review |
+| 10 | Runtime na simulátoru - DEFERRED na Mac | manuální |
 
 ---
 
@@ -109,8 +109,8 @@ Ověřit SKIE: accessory `timingViewModel()`/`controlCollectionViewModel()`, `on
 
 ### Step 3: `CollectionOfferView` + `SplneniView`
 **Files**: `iosApp/iosApp/UI/Scan/CollectionOfferView.swift`, `SplneniView.swift` (create)
-- `CollectionOfferView(candidate, isCollecting, onCollect)` — `PaperCard`-styl karta: „Kontrola v dosahu", `KP-{ordinal} · {name}` + „{distance} m", `PrimaryButton("Sebrat")` (disabled + `ProgressView` když `isCollecting`).
-- `SplneniView(controlName, timeText, subtitle, onClose)` — full-screen `Ta33Color.success`, velký SF `checkmark` v kruhu, název (display), čas (velký), podtitul, dole „Pokračovat na trase".
+- `CollectionOfferView(candidate, isCollecting, onCollect)` - `PaperCard`-styl karta: „Kontrola v dosahu", `KP-{ordinal} · {name}` + „{distance} m", `PrimaryButton("Sebrat")` (disabled + `ProgressView` když `isCollecting`).
+- `SplneniView(controlName, timeText, subtitle, onClose)` - full-screen `Ta33Color.success`, velký SF `checkmark` v kruhu, název (display), čas (velký), podtitul, dole „Pokračovat na trase".
 **Done when**: `#Preview` obou.
 
 ### Step 4: Napojení do `RootView`
@@ -142,7 +142,7 @@ Ověřit SKIE: accessory `timingViewModel()`/`controlCollectionViewModel()`, `on
 ## 7. ASSUMPTIONS
 1. **Kamera simulovaná** (rozhodnutí uživatele); AVFoundation/Vision follow-up (device).
 2. **GPS candidate** device-only.
-3. **SKIE**: accessory + `onQrScanned(raw:)` + explicitní init stavů + enum pattern match — ověřit na buildu.
+3. **SKIE**: accessory + `onQrScanned(raw:)` + explicitní init stavů + enum pattern match - ověřit na buildu.
 4. **QR formát** z parseru (Step 0).
 5. **Splnění dismiss** lokálním `@State`.
 6. **Simulátor nenaboot** → runtime na Mac.
@@ -151,7 +151,7 @@ Ověřit SKIE: accessory `timingViewModel()`/`controlCollectionViewModel()`, `on
 ### Files to Create
 - `iosApp/iosApp/UI/Scan/{ScanFlowModel,ScanView,CollectionOfferView,SplneniView}.swift`
 ### Files to Modify
-- `iosApp/iosApp/UI/Shell/RootView.swift` — scan tlačítko → ScanView; offer + Splnění; bind VM
+- `iosApp/iosApp/UI/Shell/RootView.swift` - scan tlačítko → ScanView; offer + Splnění; bind VM
 ### Commands
 ```bash
 ./gradlew :shared:linkDebugFrameworkIosSimulatorArm64
@@ -189,14 +189,14 @@ xcodebuild -project iosApp/iosApp.xcodeproj -scheme iosApp -configuration Debug 
 | Approach | Pros | Cons | Selected? |
 |---|---|---|---|
 | **A. Simulace teď + `.fullScreenCover`, kamera později** | Testovatelné, nativní | Kamera zvlášť (device) | ✅ |
-| B. Reálná AVFoundation/Vision hned | Kompletní | Velký lift, v sandboxu neověřitelné | — |
-| C. Klon Compose overlaye | Shoda s Androidem | Porušuje nativní princip | — |
+| B. Reálná AVFoundation/Vision hned | Kompletní | Velký lift, v sandboxu neověřitelné | - |
+| C. Klon Compose overlaye | Shoda s Androidem | Porušuje nativní princip | - |
 ### 12.2 Open Questions
-- [ ] **QR formát** — zjistit z parseru (Step 0).
-- [ ] **Nabídka sběru: `.sheet` vs `.safeAreaInset`** — Proposed: `.safeAreaInset(.bottom)` (nerušivé), potvrdit UX.
-- [ ] **Auto-dismiss ScanView po Started/Finished** — Proposed: krátká hláška, pak zavřít.
+- [ ] **QR formát** - zjistit z parseru (Step 0).
+- [ ] **Nabídka sběru: `.sheet` vs `.safeAreaInset`** - Proposed: `.safeAreaInset(.bottom)` (nerušivé), potvrdit UX.
+- [ ] **Auto-dismiss ScanView po Started/Finished** - Proposed: krátká hláška, pak zavřít.
 ### 12.3 Suggestions & Follow-ups
-- **Reálná kamera** (AVFoundation + Vision `VNBarcodeObservation`) + `NSCameraUsageDescription` — device plán; `onQrScanned` beze změny.
+- **Reálná kamera** (AVFoundation + Vision `VNBarcodeObservation`) + `NSCameraUsageDescription` - device plán; `onQrScanned` beze změny.
 - GPS candidate terénní test.
 - Splnění i pro cíl (Finished).
 - Sjednocené stringy přes SKIE.

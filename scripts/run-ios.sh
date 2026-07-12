@@ -6,7 +6,7 @@
 #   1. $IOS_SIMULATOR (device name or UDID)   2. a currently booted simulator
 #   3. a preferred iPhone (16/15/17)           4. the first available iPhone.
 #
-# Physical iPhones need code signing — use Xcode for those (set your Team / TEAM_ID). This script is
+# Physical iPhones need code signing - use Xcode for those (set your Team / TEAM_ID). This script is
 # simulator-only (CODE_SIGNING_ALLOWED=NO).
 set -euo pipefail
 

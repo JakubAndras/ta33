@@ -1,6 +1,6 @@
-# FR-06 — Offline Map Data & Aggregation (Shared Logic Only)
+# FR-06 - Offline Map Data & Aggregation (Shared Logic Only)
 
-> **Summary**: Build the thin shared-core logic in `commonMain` that *feeds* a native MapLibre map — offline tile-source descriptor + validation, an aggregated map overlay/state model, a `MapViewModel` combining route/checkpoints/location, and pure unit-testable geometry helpers — without any MapLibre rendering or UI.
+> **Summary**: Build the thin shared-core logic in `commonMain` that *feeds* a native MapLibre map - offline tile-source descriptor + validation, an aggregated map overlay/state model, a `MapViewModel` combining route/checkpoints/location, and pure unit-testable geometry helpers - without any MapLibre rendering or UI.
 
 ---
 
@@ -14,7 +14,7 @@ Add a small shared-logic layer in `:shared/commonMain` that (a) describes and va
 
 ### 1.3 Scope: What This IS
 - A tile-source descriptor (`MapTileSource`) + availability state (`MapTileSourceState`) + a `TileStore` accessor that resolves the on-disk MBTiles path from FR-11's `FileStorage` and validates completeness/readiness.
-- A `MapOverlay` model + thin `CheckpointMarker` projection aggregating route polyline, checkpoint markers (colored by `ControlPointState`), live position and breadcrumb polyline — all built from existing FR-02/03/04/05 models.
+- A `MapOverlay` model + thin `CheckpointMarker` projection aggregating route polyline, checkpoint markers (colored by `ControlPointState`), live position and breadcrumb polyline - all built from existing FR-02/03/04/05 models.
 - A `MapViewModel` exposing `StateFlow<MapUiState>` combining FR-03 (route), FR-04 (log/control states), FR-05 (live position + track), and the tile-source state, plus initial camera and marker selection.
 - Pure, `commonTest`-covered logic: route bounding box, initial-camera calculation, overlay mapping, nearest-marker selection.
 - A clearly documented **platform seam** describing how native MapLibre Native (Android + iOS) will consume `MapUiState`.
@@ -23,10 +23,10 @@ Add a small shared-logic layer in `:shared/commonMain` that (a) describes and va
 - **No** MapLibre rendering, style JSON, `MapView`/`MLNMapView`, layers, or any map SDK dependency in shared code (that is the later native/UI phase).
 - **No** Compose or SwiftUI code.
 - **No** mapy.cz deep-link (that is FR-07).
-- **No** new coordinate/route/control/location domain models — reuse `GeoPoint`, `ControlPoint`, `RouteDetail`, `ControlPointState`, `GeoPosition`, `Trackpoint` from FR-02/03/04/05.
-- **No** tile downloading, manifest parsing, or connectivity logic (that is FR-11) — FR-06 only *reads* what FR-11 produced.
-- **No** server/network in Etapa 1 — tiles come only from local `FileStorage`.
-- **No** real route-path polyline (FR-02 stores no route geometry — see §7 / §12).
+- **No** new coordinate/route/control/location domain models - reuse `GeoPoint`, `ControlPoint`, `RouteDetail`, `ControlPointState`, `GeoPosition`, `Trackpoint` from FR-02/03/04/05.
+- **No** tile downloading, manifest parsing, or connectivity logic (that is FR-11) - FR-06 only *reads* what FR-11 produced.
+- **No** server/network in Etapa 1 - tiles come only from local `FileStorage`.
+- **No** real route-path polyline (FR-02 stores no route geometry - see §7 / §12).
 
 ---
 
@@ -87,11 +87,11 @@ Implementation is COMPLETE when ALL criteria are met:
 | Where tile discovery lives | New FR-06 `TileStore` (interface in `domain/map`, impl in `data/map`) over `FileStorage` + `PreparationRepository` | FR-11 plan explicitly defers a clean tile accessor to FR-06; keeps FR-06 self-contained and FR-11 unchanged |
 | How to find the tile file path | Reconstruct from FR-11's deterministic convention `tiles/<tilesetId>.<format>` + validate with `FileStorage.exists()` | `DownloadItemProgress` (what `loadAssets()` returns) carries the id (`tiles:<id>`) and `DONE` status but **not** `relativePath`; the naming convention is fixed by FR-11 so reconstruction is safe. See §12.2 open question |
 | Tile readiness gate | `PreparationStatus.READY` **and** asset `DownloadStatus.DONE` **and** file exists | Belt-and-suspenders: DB says done + bytes physically present; a DONE row with a missing file → `NotDownloaded` (needs re-download) |
-| Marker model | Thin `CheckpointMarker` projection (control fields + `ControlPointState` + `isNext`) | A map-layer view of `RunLogEntry`; keeps native code from reaching into FR-04's log model and computing "next" itself. Not a duplicate *coordinate/control* model — it references `GeoPoint`/`ControlPointState` |
+| Marker model | Thin `CheckpointMarker` projection (control fields + `ControlPointState` + `isNext`) | A map-layer view of `RunLogEntry`; keeps native code from reaching into FR-04's log model and computing "next" itself. Not a duplicate *coordinate/control* model - it references `GeoPoint`/`ControlPointState` |
 | Markers before a run starts | Use FR-04's pure `ControlLogDeriver.deriveLog(controls, emptyList(), null)` when `runId == null` | Single consistent state source (first control ACTIVE, rest LOCKED) whether or not a run is active; no new logic |
-| Route polyline geometry | Straight segments between ordered `ControlPoint.location` | FR-02/03 store **no** route path geometry — only control points. Real path needs a new geometry field upstream (out of scope, see §12) |
+| Route polyline geometry | Straight segments between ordered `ControlPoint.location` | FR-02/03 store **no** route path geometry - only control points. Real path needs a new geometry field upstream (out of scope, see §12) |
 | VM composition | `MapViewModel` depends on **use-cases/streams**, not on FR-04/FR-05 ViewModels | Avoids fragile ViewModel-of-ViewModels binding/lifecycle; FR-05 plan explicitly allows injecting `LocationStream` + `ObserveTrackUseCase` directly |
-| Pure vs impure split | Pure mappers/selectors in `domain/map`; only I/O (file existence) + flow wiring in `data`/`presentation` | Requirement #4 — everything decision-shaped is unit-testable in `commonTest` |
+| Pure vs impure split | Pure mappers/selectors in `domain/map`; only I/O (file existence) + flow wiring in `data`/`presentation` | Requirement #4 - everything decision-shaped is unit-testable in `commonTest` |
 | MapLibre integration | Entirely in native UI modules (`androidApp`, `iosApp`), no shared dependency, no `expect/actual` for rendering | Alza-style: shared core is UI-agnostic; one MapLibre Native SDK per platform consumes `MapUiState` |
 
 ### 3.3 New Types (all `com.example.ta33`, `:shared/commonMain`)
@@ -186,7 +186,7 @@ data class MapTileConfig(
 )
 ```
 
-### 3.4 Platform Seam (later native/UI phase — NOT implemented here)
+### 3.4 Platform Seam (later native/UI phase - NOT implemented here)
 
 The native map view (per platform, one MapLibre Native SDK) observes `MapUiState` and does all rendering. Contract for the future UI phase:
 
@@ -203,7 +203,7 @@ The native map view (per platform, one MapLibre Native SDK) observes `MapUiState
 | `camera` | On first load fit `bounds`; if null, center on `focus` at a default zoom; then follow live position |
 | `onMarkerTapped(GeoPoint)` | Native tap handler converts the map coordinate to `GeoPoint` and calls the VM; `selectedMarkerId` then drives the native highlight/callout |
 
-Coordinate adaptation (`GeoPoint(latitude, longitude)` → `LatLng` on Android / `CLLocationCoordinate2D` on iOS) happens **only** in the native modules. The MapLibre dependency is added to `androidApp` and `iosApp` only — never to `:shared`.
+Coordinate adaptation (`GeoPoint(latitude, longitude)` → `LatLng` on Android / `CLLocationCoordinate2D` on iOS) happens **only** in the native modules. The MapLibre dependency is added to `androidApp` and `iosApp` only - never to `:shared`.
 
 ---
 
@@ -327,7 +327,7 @@ class TileStoreImpl(
             TileSourceSelector.Selection.Preparing -> MapTileSourceState.Preparing
             is TileSourceSelector.Selection.Error -> MapTileSourceState.Error(sel.message)
             is TileSourceSelector.Selection.Candidate -> {
-                // DB says DONE — confirm the bytes are physically present.
+                // DB says DONE - confirm the bytes are physically present.
                 if (fileStorage.exists(sel.relativePath)) {
                     val abs = fileStorage.baseDir().trimEnd('/') + "/" + sel.relativePath
                     MapTileSourceState.Ready(MapTileSource(sel.tilesetId, abs, sel.format))
@@ -345,7 +345,7 @@ class TileStoreImpl(
 
 ---
 
-### Step 4: Add pure geometry helpers — `RouteBounds` + `MapCameraCalculator`
+### Step 4: Add pure geometry helpers - `RouteBounds` + `MapCameraCalculator`
 **Goal**: Bounding box + initial camera from ordered route points (requirement #4).
 **Files**:
 - `shared/src/commonMain/kotlin/com/example/ta33/domain/map/RouteBounds.kt`
@@ -383,7 +383,7 @@ object MapCameraCalculator {
 }
 ```
 
-**Done when**: Compiles. (Antimeridian not handled — Czech Republic, see §7.)
+**Done when**: Compiles. (Antimeridian not handled - Czech Republic, see §7.)
 
 ---
 
@@ -544,13 +544,13 @@ fun mapViewModel(): MapViewModel = KoinPlatform.getKoin().get()
 ### Step 9: Unit tests in `commonTest`
 **Goal**: Cover all pure logic + the tile state machine (requirements #2, #3, #4, #5).
 **Files** (`shared/src/commonTest/kotlin/com/example/ta33/map/`):
-- `TileSourceSelectorTest.kt` — READY+DONE→Candidate; READY+no DONE→NotDownloaded; PREPARING (no done)→Preparing; PREPARING+DONE→Candidate; NOT_STARTED→NotDownloaded; ERROR→Error; preferred id match/miss; multiple done tiles.
-- `TileStoreImplTest.kt` — fake `FileStorage` (exists true/false) + fake `PreparationRepository`: Candidate+exists→Ready(absolutePath correct); Candidate+missing file→NotDownloaded; `observeTileSource` re-emits on preparation change.
-- `RouteBoundsTest.kt` — empty→null; single→degenerate; multi→min/max; center.
-- `MapCameraCalculatorTest.kt` — focus = live when present; = bounds center when no live; = fallback when no route & no live.
-- `OverlayMapperTest.kt` — marker state/`isNext` mapping; polyline ordered by ordinal; breadcrumb from track.
-- `MarkerSelectorTest.kt` — nearest within radius; none beyond radius; tie → deterministic; empty list→null.
-- `MapViewModelTest.kt` — fakes for all use-cases/streams; assert combined `MapUiState` (runId set → real states; runId null → derived states + empty breadcrumb; `onMarkerTapped` sets `selectedMarkerId`). Use `kotlinx-coroutines-test` `runTest` + a test dispatcher for `viewModelScope`.
+- `TileSourceSelectorTest.kt` - READY+DONE→Candidate; READY+no DONE→NotDownloaded; PREPARING (no done)→Preparing; PREPARING+DONE→Candidate; NOT_STARTED→NotDownloaded; ERROR→Error; preferred id match/miss; multiple done tiles.
+- `TileStoreImplTest.kt` - fake `FileStorage` (exists true/false) + fake `PreparationRepository`: Candidate+exists→Ready(absolutePath correct); Candidate+missing file→NotDownloaded; `observeTileSource` re-emits on preparation change.
+- `RouteBoundsTest.kt` - empty→null; single→degenerate; multi→min/max; center.
+- `MapCameraCalculatorTest.kt` - focus = live when present; = bounds center when no live; = fallback when no route & no live.
+- `OverlayMapperTest.kt` - marker state/`isNext` mapping; polyline ordered by ordinal; breadcrumb from track.
+- `MarkerSelectorTest.kt` - nearest within radius; none beyond radius; tie → deterministic; empty list→null.
+- `MapViewModelTest.kt` - fakes for all use-cases/streams; assert combined `MapUiState` (runId set → real states; runId null → derived states + empty breadcrumb; `onMarkerTapped` sets `selectedMarkerId`). Use `kotlinx-coroutines-test` `runTest` + a test dispatcher for `viewModelScope`.
 
 **Done when**: `./gradlew :shared:allTests` passes; branch coverage of `domain/map` ≥ 90%.
 
@@ -588,8 +588,8 @@ fun mapViewModel(): MapViewModel = KoinPlatform.getKoin().get()
 
 ## 6. SECURITY CONSIDERATIONS
 
-- **Input validation**: Tile file paths are built only from FR-11's fixed convention (`tiles/<tilesetId>.<ext>`) and a config-supplied subdir — no user-supplied path segments, so no path-traversal surface. `tilesetId` originates from FR-11's manifest/DB (trusted content channel).
-- **Auth/Access control**: None — Etapa 1 is anonymous, all data is local.
+- **Input validation**: Tile file paths are built only from FR-11's fixed convention (`tiles/<tilesetId>.<ext>`) and a config-supplied subdir - no user-supplied path segments, so no path-traversal surface. `tilesetId` originates from FR-11's manifest/DB (trusted content channel).
+- **Auth/Access control**: None - Etapa 1 is anonymous, all data is local.
 - **Sensitive data**: Live GPS position + breadcrumb are personal location data but stay in memory / local DB (FR-05) and are only surfaced to the native map layer; FR-06 neither persists nor transmits them. No new storage.
 - **Logging**: Log tile-state transitions and file-missing warnings without logging full absolute paths at info level (paths in debug only). Never log GPS coordinates.
 
@@ -599,13 +599,13 @@ fun mapViewModel(): MapViewModel = KoinPlatform.getKoin().get()
 
 > User opted out of clarification ("skip questions" / "proceed directly"). Accepted defaults logged below.
 
-1. **FR-02/03/04/05/11 land as their plans describe** — this plan targets planned contracts; none are in code yet (repo is the Greeting skeleton). Impact if a signature drifts: adjust the call site/mapper, not the FR-06 models.
-2. **Tile file naming is `tiles/<tilesetId>.<format>` with default `mbtiles`** (from FR-11) — `TileSourceSelector` reconstructs the relative path from this. Impact if wrong: `FileStorage.exists()` fails → false `NotDownloaded`; fix by exposing `relativePath` (see §12.2).
-3. **`DownloadItemProgress` (what `loadAssets()` returns) carries `id` + `status` but not `relativePath`/`format`** — hence reconstruction by convention. If FR-11 later exposes `relativePath`, prefer it.
-4. **Single basemap tileset for Etapa 1** (Adršpach/Teplice) — `preferredBasemapTilesetId` may stay null; selector picks the one DONE tile.
-5. **No route path geometry exists** — polyline = straight segments between ordered `ControlPoint.location`. A true trail path is out of scope (needs a new geometry field upstream).
-6. **No antimeridian / pole handling** — event area is a small region in the Czech Republic; simple min/max bbox is correct there.
-7. **MapLibre style JSON is a native concern** — shared only provides the tile file path + format; native builds the style.
+1. **FR-02/03/04/05/11 land as their plans describe** - this plan targets planned contracts; none are in code yet (repo is the Greeting skeleton). Impact if a signature drifts: adjust the call site/mapper, not the FR-06 models.
+2. **Tile file naming is `tiles/<tilesetId>.<format>` with default `mbtiles`** (from FR-11) - `TileSourceSelector` reconstructs the relative path from this. Impact if wrong: `FileStorage.exists()` fails → false `NotDownloaded`; fix by exposing `relativePath` (see §12.2).
+3. **`DownloadItemProgress` (what `loadAssets()` returns) carries `id` + `status` but not `relativePath`/`format`** - hence reconstruction by convention. If FR-11 later exposes `relativePath`, prefer it.
+4. **Single basemap tileset for Etapa 1** (Adršpach/Teplice) - `preferredBasemapTilesetId` may stay null; selector picks the one DONE tile.
+5. **No route path geometry exists** - polyline = straight segments between ordered `ControlPoint.location`. A true trail path is out of scope (needs a new geometry field upstream).
+6. **No antimeridian / pole handling** - event area is a small region in the Czech Republic; simple min/max bbox is correct there.
+7. **MapLibre style JSON is a native concern** - shared only provides the tile file path + format; native builds the style.
 8. **`MapViewModel` is bound with a `routeId`** resolved by the caller from `AppUiState.activeRouteId` (FR-01) / `ObserveSelectedRouteUseCase` (FR-03); FR-06 does not re-implement active-route resolution.
 
 ---
@@ -613,24 +613,24 @@ fun mapViewModel(): MapViewModel = KoinPlatform.getKoin().get()
 ## 8. QUICK REFERENCE
 
 ### Files to Modify
-- `shared/src/commonMain/kotlin/com/example/ta33/di/AppModule.kt` — register `MapTileConfig`, `TileStore`, `MapViewModel`
-- `shared/src/commonMain/kotlin/com/example/ta33/di/Koin.kt` — add `ViewModelProvider.mapViewModel()`
+- `shared/src/commonMain/kotlin/com/example/ta33/di/AppModule.kt` - register `MapTileConfig`, `TileStore`, `MapViewModel`
+- `shared/src/commonMain/kotlin/com/example/ta33/di/Koin.kt` - add `ViewModelProvider.mapViewModel()`
 
 ### Files to Create
-- `domain/model/MapTileSource.kt` — `TileFormat`, `MapTileSource`, `MapTileSourceState`
-- `domain/model/MapCamera.kt` — `GeoBoundingBox`, `MapCamera`
-- `domain/model/MapOverlay.kt` — `CheckpointMarker`, `MapOverlay`
-- `domain/map/MapTileConfig.kt` — config
-- `domain/map/TileSourceSelector.kt` — pure tile selection
-- `domain/map/TileStore.kt` — interface
-- `domain/map/RouteBounds.kt` — pure bbox
-- `domain/map/MapCameraCalculator.kt` — pure camera
-- `domain/map/OverlayMapper.kt` — pure overlay mapping
-- `domain/map/MarkerSelector.kt` — pure marker selection
-- `data/map/TileStoreImpl.kt` — file-validating impl
-- `presentation/MapUiState.kt` — aggregated state
-- `presentation/MapViewModel.kt` — aggregating ViewModel
-- `commonTest/.../map/*Test.kt` — 7 test files (Step 9)
+- `domain/model/MapTileSource.kt` - `TileFormat`, `MapTileSource`, `MapTileSourceState`
+- `domain/model/MapCamera.kt` - `GeoBoundingBox`, `MapCamera`
+- `domain/model/MapOverlay.kt` - `CheckpointMarker`, `MapOverlay`
+- `domain/map/MapTileConfig.kt` - config
+- `domain/map/TileSourceSelector.kt` - pure tile selection
+- `domain/map/TileStore.kt` - interface
+- `domain/map/RouteBounds.kt` - pure bbox
+- `domain/map/MapCameraCalculator.kt` - pure camera
+- `domain/map/OverlayMapper.kt` - pure overlay mapping
+- `domain/map/MarkerSelector.kt` - pure marker selection
+- `data/map/TileStoreImpl.kt` - file-validating impl
+- `presentation/MapUiState.kt` - aggregated state
+- `presentation/MapViewModel.kt` - aggregating ViewModel
+- `commonTest/.../map/*Test.kt` - 7 test files (Step 9)
 
 ### Dependencies
 - No new libraries in `:shared`. Reuses existing `kotlinx-coroutines`, `androidx.lifecycle` ViewModel, Koin, `kotlinx-coroutines-test` (test).
@@ -663,17 +663,17 @@ grep -rE "maplibre|org.maplibre|androidx.compose|import SwiftUI" shared/src || e
 | Approach | Pros | Cons | Selected? |
 |----------|------|------|-----------|
 | **A. `MapViewModel` aggregates underlying use-cases + streams + pure mappers; `TileStore` over FileStorage/PreparationRepository** | Testable pure core; no ViewModel-of-ViewModels; one shared source of truth for the native map; self-contained tile discovery | New `TileStore` + several small types; must track FR-03/04/05 use-case signatures | ✅ |
-| **B. `MapViewModel` consumes sibling FR-04/FR-05 *ViewModels* directly** | Reuses their already-combined `UiState` | Fragile VM composition (double `bind`, lifecycle/scope ownership unclear); harder to unit test; couples to VM shapes | — |
-| **C. No shared aggregation — native code reads repositories/use-cases and builds the overlay per platform** | Zero new shared types | Aggregation logic duplicated in Kotlin + Swift; bounding box / selection untestable in `commonTest`; violates Alza-style shared-core principle | — |
-| **D. Overlay carries raw `List<RunLogEntry>` instead of `CheckpointMarker`** | One fewer type; strictly "no new model" | Native must reach into FR-04's log model and compute "next" itself; leaks FR-04 shape into rendering | — |
+| **B. `MapViewModel` consumes sibling FR-04/FR-05 *ViewModels* directly** | Reuses their already-combined `UiState` | Fragile VM composition (double `bind`, lifecycle/scope ownership unclear); harder to unit test; couples to VM shapes | - |
+| **C. No shared aggregation - native code reads repositories/use-cases and builds the overlay per platform** | Zero new shared types | Aggregation logic duplicated in Kotlin + Swift; bounding box / selection untestable in `commonTest`; violates Alza-style shared-core principle | - |
+| **D. Overlay carries raw `List<RunLogEntry>` instead of `CheckpointMarker`** | One fewer type; strictly "no new model" | Native must reach into FR-04's log model and compute "next" itself; leaks FR-04 shape into rendering | - |
 
-**Why the selected approach won**: Approach A keeps every decision (tile readiness, camera, selection) pure and unit-tested in `commonMain` per the project's testing goal, gives the native MapLibre layer a single flat `MapUiState` to render, and honors FR-11's explicit deferral of a tile accessor to FR-06 — without duplicating any coordinate/route/control models.
+**Why the selected approach won**: Approach A keeps every decision (tile readiness, camera, selection) pure and unit-tested in `commonMain` per the project's testing goal, gives the native MapLibre layer a single flat `MapUiState` to render, and honors FR-11's explicit deferral of a tile accessor to FR-06 - without duplicating any coordinate/route/control models.
 
 ### 12.2 Open Questions
 
-- [ ] **Should FR-11 expose `DownloadedAsset.relativePath` (and `format`) through a read seam instead of FR-06 reconstructing `tiles/<id>.<ext>`?** — Proposed direction: ship FR-06 now with convention-based reconstruction (robust because the convention is fixed); if FR-11 later adds `relativePath` to its progress/asset read API, switch `TileSourceSelector` to consume it and drop the reconstruction.
-- [ ] **Does MapLibre need a separate downloaded style JSON asset, or does native build the style around the mbtiles?** — Proposed direction: Etapa 1 assumes native constructs a minimal style referencing the local mbtiles (no style asset in the FR-11 manifest). Revisit if a vector style file is added to the manifest — then extend `MapTileSource` with an optional `styleAbsolutePath`.
-- [ ] **Which route id does the map screen bind to when there is no active run and multiple routes exist?** — Proposed direction: caller passes `AppUiState.activeRouteId` (FR-01 run-aware resolution) / `ObserveSelectedRouteUseCase`; FR-06 stays agnostic. Confirm during the map UI phase.
+- [ ] **Should FR-11 expose `DownloadedAsset.relativePath` (and `format`) through a read seam instead of FR-06 reconstructing `tiles/<id>.<ext>`?** - Proposed direction: ship FR-06 now with convention-based reconstruction (robust because the convention is fixed); if FR-11 later adds `relativePath` to its progress/asset read API, switch `TileSourceSelector` to consume it and drop the reconstruction.
+- [ ] **Does MapLibre need a separate downloaded style JSON asset, or does native build the style around the mbtiles?** - Proposed direction: Etapa 1 assumes native constructs a minimal style referencing the local mbtiles (no style asset in the FR-11 manifest). Revisit if a vector style file is added to the manifest - then extend `MapTileSource` with an optional `styleAbsolutePath`.
+- [ ] **Which route id does the map screen bind to when there is no active run and multiple routes exist?** - Proposed direction: caller passes `AppUiState.activeRouteId` (FR-01 run-aware resolution) / `ObserveSelectedRouteUseCase`; FR-06 stays agnostic. Confirm during the map UI phase.
 
 ### 12.3 Suggestions & Follow-ups
 

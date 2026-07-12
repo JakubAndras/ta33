@@ -71,7 +71,7 @@ struct MarkBadgeView: View {
         }
     }
 
-    // KČT oficiální barvy značení (bez tokenu) + cyklo plaketka — strukturální literály.
+    // KČT oficiální barvy značení (bez tokenu) + cyklo plaketka - strukturální literály.
     private static let kctGreen = Color(hex: 0x2E9E4F)
     private static let kctYellow = Color(hex: 0xF1C40F)
     private static let cykloFill = Color(hex: 0xF1C40F)

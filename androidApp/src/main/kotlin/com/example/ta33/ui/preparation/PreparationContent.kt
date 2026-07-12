@@ -168,7 +168,7 @@ private fun ErrorSection(onRetry: () -> Unit) {
     PrimaryButton(text = stringResource(Res.string.prep_retry), onClick = onRetry)
 }
 
-/** Přechodný stav — shell přepne na Main, jakmile se readiness stane READY. */
+/** Přechodný stav - shell přepne na Main, jakmile se readiness stane READY. */
 @Composable
 private fun DoneSection() {
     Row(

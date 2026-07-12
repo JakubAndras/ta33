@@ -33,7 +33,7 @@ private fun CenteredScreen(
     )
 }
 
-/** Startovní splash — vycentrované „TA33" (display1) + spinner na cream pozadí. */
+/** Startovní splash - vycentrované „TA33" (display1) + spinner na cream pozadí. */
 @Composable
 fun SplashView(modifier: Modifier = Modifier) {
     CenteredScreen(modifier) {

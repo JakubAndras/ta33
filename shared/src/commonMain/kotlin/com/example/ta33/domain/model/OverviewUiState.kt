@@ -3,7 +3,7 @@ package com.example.ta33.domain.model
 import com.example.ta33.presentation.navigation.AppReadiness
 import com.example.ta33.presentation.navigation.ContentAvailability
 
-/** Slim progress projection for the overview (raw counts; no label/plurals — UI concern). */
+/** Slim progress projection for the overview (raw counts; no label/plurals - UI concern). */
 data class OverviewProgress(
     val collectedCount: Int,
     val totalCount: Int,

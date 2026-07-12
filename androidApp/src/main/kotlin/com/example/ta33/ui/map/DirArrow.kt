@@ -21,7 +21,7 @@ import com.example.ta33.domain.model.TurnDirection
 import com.example.ta33.ui.theme.Ta33Theme
 
 /**
- * Direction glyph (`DirArrow`) — a chunky arrow for a waypoint's turn direction, drawn on a [Canvas]
+ * Direction glyph (`DirArrow`) - a chunky arrow for a waypoint's turn direction, drawn on a [Canvas]
  * scaled from the design's 24×24 viewport (stroke 2.4, round caps/joins). Basic up/down/left/right
  * (and straight) are the up arrow rotated; `LEFT_UP` and `LEFT_RIGHT` are dedicated two-headed glyphs.
  */

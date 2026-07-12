@@ -33,7 +33,7 @@ import com.example.ta33.ui.theme.Ta33Theme
 import kotlin.math.min
 
 /**
- * Schematic route map (`SchematicMap`): a stylised stand-in for the real map — parchment→sage
+ * Schematic route map (`SchematicMap`): a stylised stand-in for the real map - parchment→sage
  * gradient base, faint contour lines + forest/water blobs, the bold route loop (white underlay +
  * route colour, dashed for TA50), a start/cíl marker and clickable control pins (rotated teardrop
  * with the control number). Pins cross-highlight with the itinerary via [highlightedControl].

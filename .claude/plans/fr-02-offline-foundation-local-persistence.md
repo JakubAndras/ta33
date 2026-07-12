@@ -1,13 +1,13 @@
-# FR-02 Offline Foundation — Local Persistence & Domain Core (Logic Only)
+# FR-02 Offline Foundation - Local Persistence & Domain Core (Logic Only)
 
-> **Summary**: Establish the shared offline-first data foundation for TA33 (domain models, SQLDelight schema on the existing `Ta33Database`, repositories, use-cases, a headless log/progress ViewModel, and unit tests) that stores routes, controls, collections, times and log locally on the phone with no network — the base every later FR builds on.
+> **Summary**: Establish the shared offline-first data foundation for TA33 (domain models, SQLDelight schema on the existing `Ta33Database`, repositories, use-cases, a headless log/progress ViewModel, and unit tests) that stores routes, controls, collections, times and log locally on the phone with no network - the base every later FR builds on.
 
 ---
 
 ## 1. PROBLEM & SOLUTION
 
 ### 1.1 Problem Statement
-TA33 must work entirely without a signal on the trail: a participant's collected controls, start/finish times, split times, and their control log (deník) have to be saved directly on the phone and survive app restarts. In Etapa 1 there is no server — the result is proven at the finish by showing the app to the organizer, so everything must be correct and durable purely locally.
+TA33 must work entirely without a signal on the trail: a participant's collected controls, start/finish times, split times, and their control log (deník) have to be saved directly on the phone and survive app restarts. In Etapa 1 there is no server - the result is proven at the finish by showing the app to the organizer, so everything must be correct and durable purely locally.
 
 ### 1.2 Solution Overview
 Build the shared Kotlin core (in the existing `:shared` module) as a Clean-Architecture data foundation: a small extensible domain model, an extended `Ta33Database` SQLDelight schema, repository interfaces (`domain`) with SQLDelight-backed implementations (`data`), coroutine/Flow reactive reads, use-cases for the core actions (start/finish run, collect control, observe log/progress), and one headless `StateFlow` ViewModel for the log. A `SyncStatus` field is baked into every user-generated row now, unused for upload, so Etapa 2 sync attaches with no migration.
@@ -24,11 +24,11 @@ Build the shared Kotlin core (in the existing `:shared` module) as a Clean-Archi
 - **Unit tests** in `commonTest` (mapping, use-cases, geo, progress, SyncStatus default).
 
 ### 1.4 Scope: What This IS NOT
-- **No UI whatsoever** — no Compose/SwiftUI screens, no navigation, no theming, no visuals. UI is a deliberately deferred later phase.
-- **No server sync / no Ktor networking / no JSON content download** — that is FR-11 / Etapa 2. Only local persistence now. `SyncStatus` is stored but never used to upload.
-- **No QR camera / no scanning implementation** and **no platform GPS acquisition** — those are platform/later FRs. We model only the *logic and data* they feed (start/finish timestamp capture; the within-radius decision given a coordinate).
-- **No column-adapter-based enum storage / no schema migration framework** — first schema version, enums stored as TEXT and mapped in Kotlin.
-- **No new Gradle modules** — everything lives in the existing `:shared` module as package layers.
+- **No UI whatsoever** - no Compose/SwiftUI screens, no navigation, no theming, no visuals. UI is a deliberately deferred later phase.
+- **No server sync / no Ktor networking / no JSON content download** - that is FR-11 / Etapa 2. Only local persistence now. `SyncStatus` is stored but never used to upload.
+- **No QR camera / no scanning implementation** and **no platform GPS acquisition** - those are platform/later FRs. We model only the *logic and data* they feed (start/finish timestamp capture; the within-radius decision given a coordinate).
+- **No column-adapter-based enum storage / no schema migration framework** - first schema version, enums stored as TEXT and mapped in Kotlin.
+- **No new Gradle modules** - everything lives in the existing `:shared` module as package layers.
 
 ---
 
@@ -125,7 +125,7 @@ commonTest.dependencies {
 
 ---
 
-### Step 2: Add `core` abstractions — `TimeProvider` and `IdGenerator`
+### Step 2: Add `core` abstractions - `TimeProvider` and `IdGenerator`
 **Goal**: Deterministic, injectable time and id sources (production impls + test fakes).
 **Files**: `core/TimeProvider.kt`, `core/IdGenerator.kt`
 
@@ -502,7 +502,7 @@ class RunRepositoryImpl(
 ```
 `ParticipantRepositoryImpl.getOrCreateLocalParticipant()` selects `selectAnyParticipant`; if none, inserts one with `IdGenerator`+`TimeProvider` (anonymous, `displayName = null`).
 
-**Done when**: All impls compile; use the exact generated query-accessor names (`db.routeQueries`, `db.controlPointQueries`, etc. — verify against generated code after first build).
+**Done when**: All impls compile; use the exact generated query-accessor names (`db.routeQueries`, `db.controlPointQueries`, etc. - verify against generated code after first build).
 
 ---
 
@@ -510,7 +510,7 @@ class RunRepositoryImpl(
 **Goal**: Encapsulate the FR actions; the ViewModel and later FRs call these.
 **Files**: `domain/usecase/EnsureLocalParticipantUseCase.kt`, `StartRunUseCase.kt`, `FinishRunUseCase.kt`, `CollectControlUseCase.kt`, `ObserveRunLogUseCase.kt`
 
-- `StartRunUseCase(run, time)`: `runRepo.setStarted(runId, time.nowMillis())` (idempotent-safe; ignore if already started — see edge cases).
+- `StartRunUseCase(run, time)`: `runRepo.setStarted(runId, time.nowMillis())` (idempotent-safe; ignore if already started - see edge cases).
 - `FinishRunUseCase`: reject if run not started or finish < start (throw `IllegalStateException` / return sealed result); else `setFinished`.
 - `CollectControlUseCase(runId, controlId, location: GeoPoint?)`:
   1. load control; if `location != null` and `!GeoUtils.isWithinRadius(control, location)` → return `Rejected.OutOfRange` (do not persist).
@@ -604,13 +604,13 @@ val appModule = module {
 ### Step 11: Unit tests (`commonTest`)
 **Goal**: Lock the core behaviour.
 **Files**: under `shared/src/commonTest/kotlin/com/example/ta33/`:
-- `SyncStatusTest.kt` — `fromDb(null/""/"NOPE")` → `PENDING`; `fromDb("SYNCED")` → `SYNCED`; new models default to `PENDING`.
-- `GeoUtilsTest.kt` — distance of two points ~55 m apart is >50 and a point ~30 m away is ≤50 (use small lat/lon deltas; assert within tolerance).
-- `CollectControlUseCaseTest.kt` — with a **fake `RunRepository`** + fixed `TimeProvider`/`IdGenerator`: first collect → `Collected` with expected timestamp; second → `AlreadyCollected`; out-of-range location → `OutOfRange` and no persistence.
-- `RunTimingTest.kt` — start sets timestamp; finish before start rejected; split = collectedAt − startedAt.
-- `RunLogAssemblyTest.kt` / `RunLogViewModelTest.kt` — 5 controls, 2 collected → progress label "2 z 5", states `[COLLECTED, COLLECTED, NEXT, PENDING, PENDING]` in ordinal order; use `runTest` + fake repos feeding `MutableStateFlow`.
+- `SyncStatusTest.kt` - `fromDb(null/""/"NOPE")` → `PENDING`; `fromDb("SYNCED")` → `SYNCED`; new models default to `PENDING`.
+- `GeoUtilsTest.kt` - distance of two points ~55 m apart is >50 and a point ~30 m away is ≤50 (use small lat/lon deltas; assert within tolerance).
+- `CollectControlUseCaseTest.kt` - with a **fake `RunRepository`** + fixed `TimeProvider`/`IdGenerator`: first collect → `Collected` with expected timestamp; second → `AlreadyCollected`; out-of-range location → `OutOfRange` and no persistence.
+- `RunTimingTest.kt` - start sets timestamp; finish before start rejected; split = collectedAt − startedAt.
+- `RunLogAssemblyTest.kt` / `RunLogViewModelTest.kt` - 5 controls, 2 collected → progress label "2 z 5", states `[COLLECTED, COLLECTED, NEXT, PENDING, PENDING]` in ordinal order; use `runTest` + fake repos feeding `MutableStateFlow`.
 
-Use `runTest { }` from `kotlinx-coroutines-test` (Step 1). Prefer fakes over a real DB driver (DB-level test needs a JVM SQLite driver — see Section 12.3).
+Use `runTest { }` from `kotlinx-coroutines-test` (Step 1). Prefer fakes over a real DB driver (DB-level test needs a JVM SQLite driver - see Section 12.3).
 
 **Done when**: `./gradlew :shared:allTests` is green.
 
@@ -636,8 +636,8 @@ Use `runTest { }` from `kotlinx-coroutines-test` (Step 1). Prefer fakes over a r
 ## 6. SECURITY CONSIDERATIONS
 
 - **Input validation**: GPS coordinates and radius are numeric; clamp/validate `radiusMeters > 0`. IDs are app-generated UUIDs, not user input.
-- **Auth/Access control**: None in Etapa 1 — participant is anonymous and local. No auth token stored (Etapa 2, Keystore/Keychain per stack §4).
-- **Sensitive data**: Location history and timestamps are personal data but stay **on-device only** (no upload in Etapa 1). No PII collected (anonymous participant). When sync arrives (Etapa 2), add a privacy review before any coordinate leaves the device — relevant to store approval (zadani location-permission justification).
+- **Auth/Access control**: None in Etapa 1 - participant is anonymous and local. No auth token stored (Etapa 2, Keystore/Keychain per stack §4).
+- **Sensitive data**: Location history and timestamps are personal data but stay **on-device only** (no upload in Etapa 1). No PII collected (anonymous participant). When sync arrives (Etapa 2), add a privacy review before any coordinate leaves the device - relevant to store approval (zadani location-permission justification).
 - **Logging**: Use Napier as the existing scaffold does. Do **not** log full coordinate streams or precise positions at info level; keep GPS/geofence logs at debug and coarse. Never log to persistent files.
 
 ---
@@ -647,7 +647,7 @@ Use `runTest { }` from `kotlinx-coroutines-test` (Step 1). Prefer fakes over a r
 > User opted out of clarification (`skip questions` / `proceed directly`). Accepted defaults recorded here.
 
 1. **The core aggregate is a `RunSession`** (one participant's attempt at one route). Impact if wrong: log/progress/split wiring would need re-parenting, but tables/models stay largely the same.
-2. **Timestamps are epoch-millis `Long`, not `kotlinx-datetime`** (no such dependency present). Impact: if human-readable time math is later needed, add `kotlinx-datetime` and adapt — models keep `Long` at the boundary.
+2. **Timestamps are epoch-millis `Long`, not `kotlinx-datetime`** (no such dependency present). Impact: if human-readable time math is later needed, add `kotlinx-datetime` and adapt - models keep `Long` at the boundary.
 3. **IDs are app-generated UUID strings.** Ready for Etapa 2 where the server may assign ids; local id can map to a server id later. Impact if wrong: minimal, ids are opaque strings.
 4. **`SyncStatus` stored as TEXT, mapped in Kotlin** (no column adapter). Impact: switching to an adapter later is a localized change in the DB builder + mappers.
 5. **The demo `Checkpoint` table and `Greeting*` scaffold are disposable/decorative.** Plan removes only the `Checkpoint` table (unused) and leaves `Greeting*` untouched. Impact if `Checkpoint` is actually referenced somewhere: build fails fast and we keep it.
@@ -655,32 +655,32 @@ Use `runTest { }` from `kotlinx-coroutines-test` (Step 1). Prefer fakes over a r
 7. **Only Android + iOS targets** (no JS/JVM app target), so `Dispatchers.Default` + native/android SQLDelight drivers are sufficient.
 8. **One active run at a time in Etapa 1.** `selectActiveRun` assumes a single open run. Impact if multiple routes run concurrently: revisit query (unlikely for this event).
 9. **`kotlin.time.Clock` and `kotlin.uuid.Uuid` are usable on Kotlin 2.4.0** (stable/with `@OptIn`). Fallback: `expect/actual` in `core` (Section 12.2).
-10. **`kotlinx-coroutines-test` may be added to `commonTest`** (only `kotlin.test` today) — a small, justified test-only dependency.
+10. **`kotlinx-coroutines-test` may be added to `commonTest`** (only `kotlin.test` today) - a small, justified test-only dependency.
 
 ---
 
 ## 8. QUICK REFERENCE
 
 ### Files to Modify
-- `gradle/libs.versions.toml` — add `kotlinx-coroutines-test` library alias.
-- `shared/build.gradle.kts` — add `libs.kotlinx.coroutines.test` to `commonTest`.
-- `shared/src/commonMain/sqldelight/com/example/ta33/data/db/schema.sq` — remove demo `Checkpoint` table/queries.
-- `shared/src/commonMain/kotlin/com/example/ta33/di/AppModule.kt` — register repos, use-cases, ViewModel, `TimeProvider`, `IdGenerator`.
+- `gradle/libs.versions.toml` - add `kotlinx-coroutines-test` library alias.
+- `shared/build.gradle.kts` - add `libs.kotlinx.coroutines.test` to `commonTest`.
+- `shared/src/commonMain/sqldelight/com/example/ta33/data/db/schema.sq` - remove demo `Checkpoint` table/queries.
+- `shared/src/commonMain/kotlin/com/example/ta33/di/AppModule.kt` - register repos, use-cases, ViewModel, `TimeProvider`, `IdGenerator`.
 
 ### Files to Create
-- `core/TimeProvider.kt`, `core/IdGenerator.kt` — injectable time/id (prod + test-fakeable).
-- `domain/model/…` — `SyncStatus`, `GeoPoint`, `ControlPoint`, `Route`, `Participant`, `RunSession`, `CollectedControl`, `RunLogEntry`, `RunProgress`.
-- `domain/geo/GeoUtils.kt` — Haversine + within-radius.
-- `domain/repository/…` — `ParticipantRepository`, `RouteRepository`, `RunRepository`.
-- `domain/usecase/…` — `EnsureLocalParticipantUseCase`, `StartRunUseCase`, `FinishRunUseCase`, `CollectControlUseCase`, `ObserveRunLogUseCase`.
-- `data/mapper/Mappers.kt` — row ⇄ domain.
-- `data/repository/…` — `ParticipantRepositoryImpl`, `RouteRepositoryImpl`, `RunRepositoryImpl`.
-- `presentation/RunLogViewModel.kt` — headless `StateFlow` log/progress.
+- `core/TimeProvider.kt`, `core/IdGenerator.kt` - injectable time/id (prod + test-fakeable).
+- `domain/model/…` - `SyncStatus`, `GeoPoint`, `ControlPoint`, `Route`, `Participant`, `RunSession`, `CollectedControl`, `RunLogEntry`, `RunProgress`.
+- `domain/geo/GeoUtils.kt` - Haversine + within-radius.
+- `domain/repository/…` - `ParticipantRepository`, `RouteRepository`, `RunRepository`.
+- `domain/usecase/…` - `EnsureLocalParticipantUseCase`, `StartRunUseCase`, `FinishRunUseCase`, `CollectControlUseCase`, `ObserveRunLogUseCase`.
+- `data/mapper/Mappers.kt` - row ⇄ domain.
+- `data/repository/…` - `ParticipantRepositoryImpl`, `RouteRepositoryImpl`, `RunRepositoryImpl`.
+- `presentation/RunLogViewModel.kt` - headless `StateFlow` log/progress.
 - SQLDelight: `Route.sq`, `ControlPoint.sq`, `Participant.sq`, `RunSession.sq`, `CollectedControl.sq`.
-- `commonTest/…` — `SyncStatusTest`, `GeoUtilsTest`, `CollectControlUseCaseTest`, `RunTimingTest`, `RunLogViewModelTest` (+ fakes).
+- `commonTest/…` - `SyncStatusTest`, `GeoUtilsTest`, `CollectControlUseCaseTest`, `RunTimingTest`, `RunLogViewModelTest` (+ fakes).
 
 ### Dependencies
-- `org.jetbrains.kotlinx:kotlinx-coroutines-test` @ `coroutines` version (1.10.2) — test-only, `runTest`.
+- `org.jetbrains.kotlinx:kotlinx-coroutines-test` @ `coroutines` version (1.10.2) - test-only, `runTest`.
 - (Already present: SQLDelight 2.1.0 runtime + coroutines-extensions + drivers, Koin 4.1.0, coroutines-core, lifecycle-viewmodel.)
 
 ### Commands
@@ -712,22 +712,22 @@ Use `runTest { }` from `kotlinx-coroutines-test` (Step 1). Prefer fakes over a r
 | Approach | Pros | Cons | Selected? |
 |----------|------|------|-----------|
 | **A. `RunSession` aggregate** (participant → run → collected controls; times on run) | Clean ownership of times/splits/progress; one open run restorable; sync-ready per row | One extra table vs. bare minimum | ✅ |
-| B. No `RunSession` — collected controls + a single "current times" row keyed by route | Fewer tables | No clean home for start/finish, can't support re-runs, split logic messy, poor Etapa 2 fit | — |
-| C. Store enums via SQLDelight column adapters (`syncStatus TEXT AS SyncStatus`, timestamps as typed `Instant`) | Type-safe columns, less manual mapping | Requires adapters at `Ta33Database(...)` construction (touches `platformModule`/DI), adds `kotlinx-datetime`; heavier for v1 | — |
-| D. Persist domain models as JSON blobs (single table) | Fast to write | Loses SQL querying/Flow-by-table, bad for progress/log queries, not the SQLDelight skill the stack targets | — |
+| B. No `RunSession` - collected controls + a single "current times" row keyed by route | Fewer tables | No clean home for start/finish, can't support re-runs, split logic messy, poor Etapa 2 fit | - |
+| C. Store enums via SQLDelight column adapters (`syncStatus TEXT AS SyncStatus`, timestamps as typed `Instant`) | Type-safe columns, less manual mapping | Requires adapters at `Ta33Database(...)` construction (touches `platformModule`/DI), adds `kotlinx-datetime`; heavier for v1 | - |
+| D. Persist domain models as JSON blobs (single table) | Fast to write | Loses SQL querying/Flow-by-table, bad for progress/log queries, not the SQLDelight skill the stack targets | - |
 
 **Why the selected approach won**: The `RunSession` aggregate maps 1:1 to the real-world "one attempt at a route with a start, splits and a finish", gives every later FR (FR-03/04/08/09) a clean query surface, and keeps v1 free of column adapters/extra deps while staying sync-ready via per-row `SyncStatus`.
 
 ### 12.2 Open Questions
 
-- [ ] **Is `kotlin.time.Clock` / `kotlin.uuid.Uuid` stable (no opt-in) on this exact Kotlin 2.4.0 setup?** — Proposed direction: try the stdlib API first (Step 2); if the compiler flags experimental/unresolved, drop to `expect/actual nowMillis()`/`randomUuid()` in `core` (Android `System.currentTimeMillis()`/`java.util.UUID`, iOS `NSDate().timeIntervalSince1970`/`NSUUID`).
-- [ ] **Does the app need multiple concurrent runs (e.g. switch routes) in Etapa 1?** — Proposed direction: assume single active run (`selectActiveRun`); revisit only if the organizer confirms multi-route same-device usage.
-- [ ] **Should "NEXT" state respect ordinal or GPS proximity?** — Proposed direction: ordinal (first uncollected by order) for the deník; proximity-based "next" can be layered in the map FR without schema change.
-- [ ] **Where does the temporary dev seed (a sample Trasa + controls) live until FR-11?** — Proposed direction: a small `commonTest` fixture and an optional debug-only seed calling `RouteRepository.upsertRoute`; do not ship a hardcoded route in production code.
+- [ ] **Is `kotlin.time.Clock` / `kotlin.uuid.Uuid` stable (no opt-in) on this exact Kotlin 2.4.0 setup?** - Proposed direction: try the stdlib API first (Step 2); if the compiler flags experimental/unresolved, drop to `expect/actual nowMillis()`/`randomUuid()` in `core` (Android `System.currentTimeMillis()`/`java.util.UUID`, iOS `NSDate().timeIntervalSince1970`/`NSUUID`).
+- [ ] **Does the app need multiple concurrent runs (e.g. switch routes) in Etapa 1?** - Proposed direction: assume single active run (`selectActiveRun`); revisit only if the organizer confirms multi-route same-device usage.
+- [ ] **Should "NEXT" state respect ordinal or GPS proximity?** - Proposed direction: ordinal (first uncollected by order) for the deník; proximity-based "next" can be layered in the map FR without schema change.
+- [ ] **Where does the temporary dev seed (a sample Trasa + controls) live until FR-11?** - Proposed direction: a small `commonTest` fixture and an optional debug-only seed calling `RouteRepository.upsertRoute`; do not ship a hardcoded route in production code.
 
 ### 12.3 Suggestions & Follow-ups
 
-- Add a **JVM SQLite driver** (`app.cash.sqldelight:sqlite-driver`) in `androidHostTest` to add real DB integration tests (schema + queries) beyond the fake-repo unit tests — good coverage, out of scope here.
+- Add a **JVM SQLite driver** (`app.cash.sqldelight:sqlite-driver`) in `androidHostTest` to add real DB integration tests (schema + queries) beyond the fake-repo unit tests - good coverage, out of scope here.
 - When **FR-11** lands, add `data/dto` + Ktor + a JSON→`upsertRoute` mapper; the repository `upsert*` hooks are already the seam.
 - When **Etapa 2 sync** lands, add a `syncQueries` selecting rows `WHERE syncStatus = 'PENDING'` and a background uploader; no schema change needed beyond flipping statuses to `SYNCED`.
 - Consider **detekt/ktlint** (stack §6/§7 "cíl") before the codebase grows.

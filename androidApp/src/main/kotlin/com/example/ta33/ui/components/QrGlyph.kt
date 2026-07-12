@@ -14,9 +14,9 @@ import androidx.compose.ui.unit.dp
 import com.example.ta33.ui.theme.Ta33Theme
 
 /**
- * Mock „odbavovací QR" — deterministický 21×21 pseudo-vzor (jako design `QRGlyph`).
+ * Mock „odbavovací QR" - deterministický 21×21 pseudo-vzor (jako design `QRGlyph`).
  * NENÍ skenovatelný; jen vizuální placeholder do doby, než přijde reálné generování QR
- * (Etapa 2, FR-13). Barvy se berou z tokenů — [cellColor] tmavé buňky na [background].
+ * (Etapa 2, FR-13). Barvy se berou z tokenů - [cellColor] tmavé buňky na [background].
  */
 @Composable
 fun QrGlyph(

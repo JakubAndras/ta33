@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Offline banner — warning-tint pozadí, ⚡ (SF Symbol `bolt.fill`) + text. Zrcadlí Android `OfflineBanner`.
+/// Offline banner - warning-tint pozadí, ⚡ (SF Symbol `bolt.fill`) + text. Zrcadlí Android `OfflineBanner`.
 struct OfflineBanner: View {
     var body: some View {
         HStack(spacing: Ta33Spacing.x2) {

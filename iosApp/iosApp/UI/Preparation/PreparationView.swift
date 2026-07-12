@@ -4,7 +4,7 @@ import Shared
 /// „Příprava dat akce" (FR-11) nad sdíleným `DownloadViewModel` (přes `PreparationModel`).
 /// Gate obrazovka pro readiness `.notReady`/`.preparing`: identity karta + karta s výzvou /
 /// průběhem / pauzou / chybou podle `DownloadUiState`. Přechod po dokončení řeší `RootView`
-/// (readiness gate) — tady žádná explicitní navigace není. Zrcadlí Android `PreparationContent` (ui-07),
+/// (readiness gate) - tady žádná explicitní navigace není. Zrcadlí Android `PreparationContent` (ui-07),
 /// ale nativně: `ProgressView(value:)` a `Toggle`.
 struct PreparationView: View {
     @StateObject private var model = PreparationModel()
@@ -95,7 +95,7 @@ struct PreparationView: View {
         PrimaryButton("Zkusit znovu") { model.retry() }
     }
 
-    /// Přechodný stav — `RootView` přepne na `TabView`, jakmile se readiness stane `.ready`.
+    /// Přechodný stav - `RootView` přepne na `TabView`, jakmile se readiness stane `.ready`.
     @ViewBuilder private var doneSection: some View {
         HStack {
             Spacer()
@@ -133,7 +133,7 @@ private struct ItemRow: View {
     }
 }
 
-/// Warning banner — warning-tint pozadí, ⚠ (SF Symbol) + text. Styl zrcadlí `OfflineBanner`,
+/// Warning banner - warning-tint pozadí, ⚠ (SF Symbol) + text. Styl zrcadlí `OfflineBanner`,
 /// ale s proměnným textem (např. „Čeká na Wi-Fi").
 private struct WarningBanner: View {
     let text: String

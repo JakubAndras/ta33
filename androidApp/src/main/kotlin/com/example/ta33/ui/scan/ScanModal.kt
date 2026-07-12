@@ -51,7 +51,7 @@ import com.example.ta33.ui.theme.Ta33Theme
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * Celoobrazovkový QR sken (FR-09) — slate-900 pozadí, oranžový scan rámeček s pulzující linkou.
+ * Celoobrazovkový QR sken (FR-09) - slate-900 pozadí, oranžový scan rámeček s pulzující linkou.
  * Kamera je zatím zástupná plocha; start/cíl se simuluje tlačítky, která feednou payload do
  * [com.example.ta33.presentation.TimingViewModel.onQrScanned]. Výsledek posledního skenu
  * ([TimingUiState.lastScan]) se zobrazí jako hláška pod tlačítky.

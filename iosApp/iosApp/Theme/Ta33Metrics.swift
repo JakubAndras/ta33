@@ -1,6 +1,6 @@
 import CoreGraphics
 
-/// Spacing scale — 4px base (TA33 Design System). Zrcadlí `Ta33Spacing` na Androidu.
+/// Spacing scale - 4px base (TA33 Design System). Zrcadlí `Ta33Spacing` na Androidu.
 enum Ta33Spacing {
     static let x1: CGFloat = 4
     static let x2: CGFloat = 8

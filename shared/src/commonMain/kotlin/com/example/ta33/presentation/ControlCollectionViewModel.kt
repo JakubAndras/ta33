@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-/** Outcome of the last confirm() — the "green screen" (later UI) renders JustCollected. */
+/** Outcome of the last confirm() - the "green screen" (later UI) renders JustCollected. */
 sealed interface CollectionOutcome {
     data class JustCollected(val controlId: String) : CollectionOutcome
     data object AlreadyCollected : CollectionOutcome

@@ -1,13 +1,13 @@
-# UI-08 — Preparation / Stažení dat akce (iOS SwiftUI)
+# UI-08 - Preparation / Stažení dat akce (iOS SwiftUI)
 
-> **Summary**: iOS SwiftUI gate obrazovka „Příprava dat akce" nad `DownloadViewModel` (FR-11, SKIE) — prompt/průběh/pauza/chyba/Wi-Fi-gating; po dokončení `RootView` sám přejde do TabView. Zrcadlo Androidu (ui-07), iOS-nativní. Nahrazuje `PreparationPlaceholder`.
+> **Summary**: iOS SwiftUI gate obrazovka „Příprava dat akce" nad `DownloadViewModel` (FR-11, SKIE) - prompt/průběh/pauza/chyba/Wi-Fi-gating; po dokončení `RootView` sám přejde do TabView. Zrcadlo Androidu (ui-07), iOS-nativní. Nahrazuje `PreparationPlaceholder`.
 
 ---
 
 ## 1. PROBLEM & SOLUTION
 
 ### 1.1 Problem Statement
-iOS shell (ui-04) ukazuje při `readiness .notReady/.preparing` jen `PreparationPlaceholder`. FR-11 `DownloadViewModel` je hotový — chybí obrazovka stažení dat akce.
+iOS shell (ui-04) ukazuje při `readiness .notReady/.preparing` jen `PreparationPlaceholder`. FR-11 `DownloadViewModel` je hotový - chybí obrazovka stažení dat akce.
 
 ### 1.2 Solution Overview
 `PreparationView` přes `PreparationModel` (ObservableObject nad `DownloadViewModel`, SKIE `for await`) vykreslí dle `progress.overallStatus` + `blockedByNetwork` nativní obsah: výzva (IDLE), průběh + pauza (DOWNLOADING), pokračovat (PAUSED), chyba + opakovat (ERROR), banner „Čeká na Wi-Fi". Ovládá `start/pause/resume/retry/setNetworkPreference`. Po dokončení `preparation.status=READY` → `AppReadiness.ready` → `RootView` sám přepne na `TabView`. Nahradí `PreparationPlaceholder` v `RootView`.
@@ -35,8 +35,8 @@ iOS shell (ui-04) ukazuje při `readiness .notReady/.preparing` jen `Preparation
 | 5 | DOWNLOADING: `ProgressView(value:)` + per-item + „Pozastavit" → `pause()` | Preview |
 | 6 | PAUSED → „Pokračovat" `resume()`; ERROR → „Zkusit znovu" `retry()` | Preview |
 | 7 | `blockedByNetwork` → banner „Čeká na Wi-Fi" | Preview |
-| 8 | Žádný hardcoded hex/CGFloat — vše přes `Ta33Color/Font/Spacing/Radius` | code review |
-| 9 | Runtime na simulátoru — DEFERRED na Mac | manuální |
+| 8 | Žádný hardcoded hex/CGFloat - vše přes `Ta33Color/Font/Spacing/Radius` | code review |
+| 9 | Runtime na simulátoru - DEFERRED na Mac | manuální |
 
 ---
 
@@ -85,7 +85,7 @@ final class PreparationModel: ObservableObject {
     func setWifiOnly(_ on: Bool) { vm.setNetworkPreference(pref: on ? .wifiOnly : .wifiAndCellular) }  // ověřit názvy
 }
 ```
-Ověřit SKIE: `downloadViewModel()` accessor (v Koin.kt), `NetworkPreference` casing (`.wifiOnly`/`.wifiAndCellular`), explicitní init `DownloadUiState` (vnořené `OfflinePackageProgress()`/`PreparationState()` mají default init v Kotlinu — SKIE ale ne; sestavit explicitně nebo přes optional + placeholder).
+Ověřit SKIE: `downloadViewModel()` accessor (v Koin.kt), `NetworkPreference` casing (`.wifiOnly`/`.wifiAndCellular`), explicitní init `DownloadUiState` (vnořené `OfflinePackageProgress()`/`PreparationState()` mají default init v Kotlinu - SKIE ale ne; sestavit explicitně nebo přes optional + placeholder).
 **Done when**: framework link zelený.
 
 ### Step 2: `PreparationFormat` + banner
@@ -123,7 +123,7 @@ struct PreparationView: View {
                     default: ProgressView()
                     }
                 }
-                if model.state.blockedByNetwork { WarningBanner("Čeká na Wi-Fi — připoj se, ať můžeš stáhnout data") }
+                if model.state.blockedByNetwork { WarningBanner("Čeká na Wi-Fi - připoj se, ať můžeš stáhnout data") }
             }.padding(Ta33Spacing.x4)
         }
         .background(Ta33Color.cream)
@@ -163,7 +163,7 @@ Reuse `PrimaryButtonView`/`OutlineButtonView`/IdentityCard z ui-02 Components (o
 ### Files to Create
 - `iosApp/iosApp/UI/Preparation/{PreparationModel,PreparationView}.swift`
 ### Files to Modify
-- `iosApp/iosApp/UI/Shell/RootView.swift` — .notReady/.preparing → `PreparationView`
+- `iosApp/iosApp/UI/Shell/RootView.swift` - .notReady/.preparing → `PreparationView`
 ### Commands
 ```bash
 ./gradlew :shared:linkDebugFrameworkIosSimulatorArm64
@@ -200,11 +200,11 @@ xcodebuild -project iosApp/iosApp.xcodeproj -scheme iosApp -configuration Debug 
 | Approach | Pros | Cons | Selected? |
 |---|---|---|---|
 | **A. Gate obrazovka řízená readiness, nativní ProgressView/Toggle** | Konzistentní s FR-01 + iOS-nativní | Přechod „neviditelný" | ✅ |
-| B. Explicitní navigace po DONE | Explicitní | Duplikuje readiness | — |
-| C. Klon Compose karet | Shoda s Androidem | Porušuje nativní princip | — |
+| B. Explicitní navigace po DONE | Explicitní | Duplikuje readiness | - |
+| C. Klon Compose karet | Shoda s Androidem | Porušuje nativní princip | - |
 ### 12.2 Open Questions
-- [ ] **SKIE casing/init** (`NetworkPreference`, `DownloadUiState`) — ověřit na buildu.
-- [ ] **Reuse názvy komponent z ui-02** (PrimaryButton/IdentityCard) — ověřit skutečné názvy.
+- [ ] **SKIE casing/init** (`NetworkPreference`, `DownloadUiState`) - ověřit na buildu.
+- [ ] **Reuse názvy komponent z ui-02** (PrimaryButton/IdentityCard) - ověřit skutečné názvy.
 ### 12.3 Suggestions & Follow-ups
 - Skutečná velikost/manifest; MB formát.
 - Sjednocené stringy přes SKIE (Res.string).

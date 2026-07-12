@@ -20,7 +20,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.example.ta33.ui.theme.Ta33Theme
 
 /**
- * Řádek klíč–hodnota (label vlevo `bodyStrong`/`fgStrong`, hodnota vpravo `body`).
+ * Řádek klíč-hodnota (label vlevo `bodyStrong`/`fgStrong`, hodnota vpravo `body`).
  * Mezi řádky 1px `slate-100` divider (`showDivider`); u prvního řádku vypnout.
  */
 @Composable

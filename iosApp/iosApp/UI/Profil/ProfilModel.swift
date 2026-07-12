@@ -3,7 +3,7 @@ import Shared
 
 /// Pozoruje sdílené `OverviewViewModel` + `SettingsViewModel` (FR-10) přes SKIE `AsyncSequence`
 /// (`for await`) a vystavuje jejich stav SwiftUI. Zrcadlí vzor `RootModel`/`DenikModel` (ui-02/ui-04).
-/// „Hlasové pokyny" nejsou v modelu — jsou lokální `@State` ve `ProfilView` (mock, Etapa 2).
+/// „Hlasové pokyny" nejsou v modelu - jsou lokální `@State` ve `ProfilView` (mock, Etapa 2).
 @MainActor
 final class ProfilModel: ObservableObject {
     private let overviewVM = ViewModelProvider.shared.overviewViewModel()

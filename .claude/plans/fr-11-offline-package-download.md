@@ -1,13 +1,13 @@
-# FR-11 Offline Package Download — Networking & Orchestration (Logic Only)
+# FR-11 Offline Package Download - Networking & Orchestration (Logic Only)
 
-> **Summary**: Build the shared, headless logic that downloads the full TA33 offline package (manifest + content JSON → routes/controls persisted via FR-02, plus map tiles into file storage for FR-06), tracks per-item and overall download progress with pause/resume, honours a Wi-Fi-vs-mobile-data preference via platform connectivity detection, and flips the app to "ready offline" (FR-01) on completion — with no UI built.
+> **Summary**: Build the shared, headless logic that downloads the full TA33 offline package (manifest + content JSON → routes/controls persisted via FR-02, plus map tiles into file storage for FR-06), tracks per-item and overall download progress with pause/resume, honours a Wi-Fi-vs-mobile-data preference via platform connectivity detection, and flips the app to "ready offline" (FR-01) on completion - with no UI built.
 
 ---
 
 ## 1. PROBLEM & SOLUTION
 
 ### 1.1 Problem Statement
-Before the event, a TA33 participant must pull everything the app needs to work with no signal on the trail: the route(s), the control points, and the offline map. The download can be large, so the app must show progress, let the user choose whether it may run on mobile data or Wi-Fi only, survive interruptions (resume rather than restart), and end in a durable "ready offline" state. Today none of this exists — Ktor is wired into the build but no HTTP client is constructed, there is no content source, no file storage, and no connectivity detection.
+Before the event, a TA33 participant must pull everything the app needs to work with no signal on the trail: the route(s), the control points, and the offline map. The download can be large, so the app must show progress, let the user choose whether it may run on mobile data or Wi-Fi only, survive interruptions (resume rather than restart), and end in a durable "ready offline" state. Today none of this exists - Ktor is wired into the build but no HTTP client is constructed, there is no content source, no file storage, and no connectivity detection.
 
 ### 1.2 Solution Overview
 Add a shared, Clean-Architecture download subsystem inside the existing `:shared` module: `@Serializable` DTOs + a Ktor-based remote data source (manifest + content JSON + streamed tile files from a **configurable** base URL), a DTO→domain mapper that persists routes/controls through the **existing FR-02 `RouteRepository.upsertRoute` seam**, an `expect/actual` `FileStorage` for tiles and `ConnectivityMonitor` for network-type detection, a **pure** progress reducer, an `OfflinePackageRepository` + `PrepareOfflinePackageUseCase` that orchestrates the whole run (idempotent + resumable), a persisted `Preparation` state that FR-01 reads to drive `PREPARING`/`READY`, and a headless `DownloadViewModel` exposing a `StateFlow`. No screens, no progress bars, no visuals.
@@ -17,7 +17,7 @@ Add a shared, Clean-Architecture download subsystem inside the existing `:shared
 - **Remote data source** (`data/remote`): Ktor `HttpClient` construction (engine injected per platform), `ContentRemoteDataSource` (fetch manifest, fetch content JSON, **stream** a tile file with byte-progress + HTTP `Range` resume), and a configurable `ContentConfig` (base URL + manifest path).
 - **File storage** (`data/file`): `FileStorage` interface + Android (`Context.filesDir`) and iOS (`NSDocumentDirectory`) implementations, registered in `platformModule`. Append-capable (for resume) + size/exists/delete. FR-06 consumes the written tiles later.
 - **Connectivity** (`data/connectivity`): `ConnectivityMonitor` interface + Android (`ConnectivityManager`/`NetworkCapabilities`) and iOS (`NWPathMonitor`) implementations; exposes current `NetworkType` and a `Flow<NetworkType>`.
-- **Progress model + pure reducer** (`domain/download`): `DownloadStatus`, `DownloadItemProgress`, `OfflinePackageProgress`, and a pure `ProgressReducer` (per-item update + overall aggregation + fraction) — fully unit-testable with no I/O.
+- **Progress model + pure reducer** (`domain/download`): `DownloadStatus`, `DownloadItemProgress`, `OfflinePackageProgress`, and a pure `ProgressReducer` (per-item update + overall aggregation + fraction) - fully unit-testable with no I/O.
 - **Persisted preparation state**: new SQLDelight `Preparation` (single row) + `DownloadedAsset` tables on the existing `Ta33Database`, behind a `PreparationRepository`.
 - **Orchestration**: `OfflinePackageRepository` (domain contract + data impl) and `PrepareOfflinePackageUseCase` (manifest → content download+persist → tile downloads → mark ready), idempotent and resumable, network-preference-gated.
 - **Headless `DownloadViewModel`** (`presentation`): `StateFlow<DownloadUiState>` + intents `start / pause / resume / retry / setNetworkPreference`. No UI consumes it here.
@@ -26,13 +26,13 @@ Add a shared, Clean-Architecture download subsystem inside the existing `:shared
 - **Unit tests** (`commonTest`) with **Ktor `MockEngine`**: manifest parsing, DTO→domain mapping, progress reducer transitions, connectivity gating, orchestration happy-path + resume, ViewModel state.
 
 ### 1.4 Scope: What This IS NOT
-- **No UI whatsoever** — no Compose/SwiftUI screens, no progress bars, no network-choice toggles, no "ready" screen. UI is a deliberately deferred later phase.
-- **No map rendering / tile *consumption*** — FR-11 only downloads and stores tile files; FR-06 reads them.
-- **No redefinition of FR-02** — domain models (`Route`, `ControlPoint`, …), `RouteRepository`, `SyncStatus`, `TimeProvider`, `IdGenerator`, `Ta33Database` are **referenced**, not duplicated. Content is persisted through the existing `upsertRoute` seam.
-- **No server upload / sync** — Etapa 1 is download-only, read-only content (project-stack §10). `SyncStatus` stays `PENDING`.
-- **No real production content** — the final GPS/route/tile data is not delivered yet; everything is driven off a **configurable URL** + a temporary dev host/file.
-- **No background/foreground-service download** — the download runs in the ViewModel's coroutine scope while the app is foregrounded; OS background-download services are a later concern.
-- **No new Gradle modules** — everything lives in `:shared` as package layers (project-stack §12).
+- **No UI whatsoever** - no Compose/SwiftUI screens, no progress bars, no network-choice toggles, no "ready" screen. UI is a deliberately deferred later phase.
+- **No map rendering / tile *consumption*** - FR-11 only downloads and stores tile files; FR-06 reads them.
+- **No redefinition of FR-02** - domain models (`Route`, `ControlPoint`, …), `RouteRepository`, `SyncStatus`, `TimeProvider`, `IdGenerator`, `Ta33Database` are **referenced**, not duplicated. Content is persisted through the existing `upsertRoute` seam.
+- **No server upload / sync** - Etapa 1 is download-only, read-only content (project-stack §10). `SyncStatus` stays `PENDING`.
+- **No real production content** - the final GPS/route/tile data is not delivered yet; everything is driven off a **configurable URL** + a temporary dev host/file.
+- **No background/foreground-service download** - the download runs in the ViewModel's coroutine scope while the app is foregrounded; OS background-download services are a later concern.
+- **No new Gradle modules** - everything lives in `:shared` as package layers (project-stack §12).
 
 ---
 
@@ -62,7 +62,7 @@ Implementation is COMPLETE when ALL criteria are met:
 ### 3.1 Architecture
 
 ```
-              NATIVE UI (later phase — NOT built here)
+              NATIVE UI (later phase - NOT built here)
               reads DownloadUiState, sends intents (start/pause/…)
         ══════════════════ SHARED CORE (:shared, commonMain) ══════════════════
                           presentation/
@@ -153,7 +153,7 @@ implementation(libs.ktor.client.mock)
 // data/remote/ContentConfig.kt
 package com.example.ta33.data.remote
 
-/** Configurable content source. Final data not delivered yet (project-stack §10) — repoint by changing baseUrl only. */
+/** Configurable content source. Final data not delivered yet (project-stack §10) - repoint by changing baseUrl only. */
 data class ContentConfig(
     val baseUrl: String = DEV_PLACEHOLDER_BASE_URL,
     val manifestPath: String = "manifest.json",
@@ -395,7 +395,7 @@ interface ConnectivityMonitor {
 
 ---
 
-### Step 8: Extend SQLDelight schema — `Preparation` + `DownloadedAsset`
+### Step 8: Extend SQLDelight schema - `Preparation` + `DownloadedAsset`
 **Goal**: Durable readiness flag + resume bookkeeping on the existing `Ta33Database`.
 **Files**: `shared/src/commonMain/sqldelight/com/example/ta33/data/db/Preparation.sq`, `DownloadedAsset.sq`
 
@@ -430,7 +430,7 @@ INSERT OR REPLACE INTO DownloadedAsset(itemId, relativePath, status, bytesDownlo
 VALUES (?, ?, ?, ?, ?, ?, ?);
 deleteAllAssets: DELETE FROM DownloadedAsset;
 ```
-> The seed `INSERT OR IGNORE` guarantees a row exists; enums stored as TEXT and parsed in Kotlin (matches FR-02's `SyncStatus.fromDb` convention — add `PreparationStatus.fromDb`/`DownloadStatus.fromDb`).
+> The seed `INSERT OR IGNORE` guarantees a row exists; enums stored as TEXT and parsed in Kotlin (matches FR-02's `SyncStatus.fromDb` convention - add `PreparationStatus.fromDb`/`DownloadStatus.fromDb`).
 
 **Done when**: `./gradlew build` regenerates `PreparationQueries` + `DownloadedAssetQueries`.
 
@@ -545,7 +545,7 @@ class PrepareOfflinePackageUseCase(
 ```
 > `networkAllows` is a pure `companion` function → directly unit-tested (Step 13). Cancellation (pause) propagates through the `flow` coroutine; persisted `DownloadedAsset` rows enable the next `run(...)` to resume/skip.
 
-`ObservePreparationStateUseCase(prep) = prep.observePreparationState()` — thin, consumed by FR-01 (Step 12) and the ViewModel.
+`ObservePreparationStateUseCase(prep) = prep.observePreparationState()` - thin, consumed by FR-01 (Step 12) and the ViewModel.
 
 **Done when**: Compiles; behaviour locked by Step 13 tests.
 
@@ -572,13 +572,13 @@ factory { ObservePreparationStateUseCase(get()) }
 factory { DownloadViewModel(get(), get(), get()) }
 ```
 `Koin.kt` `ViewModelProvider`: `fun downloadViewModel(): DownloadViewModel = KoinPlatform.getKoin().get()`.
-(iOS Info.plist needs no special key — standard HTTPS is allowed under ATS; document only if a plaintext dev host is used.)
+(iOS Info.plist needs no special key - standard HTTPS is allowed under ATS; document only if a plaintext dev host is used.)
 
 **Done when**: `./gradlew build` passes; Koin resolves (Step 13 / app launch); iOS builds.
 
 ---
 
-### Step 12: Coordinated FR-01 seam — readiness from persisted `Preparation`
+### Step 12: Coordinated FR-01 seam - readiness from persisted `Preparation`
 **Goal**: Make the persisted flag the readiness source of truth (drives `PREPARING`/`READY`).
 **Files**: `presentation/navigation/AppStateReducer.kt` (FR-01), `presentation/AppViewModel.kt` (FR-01)
 
@@ -586,7 +586,7 @@ factory { DownloadViewModel(get(), get(), get()) }
 - `AppStateReducer.reduce(routes, activeRun, prep, resolver)` maps:
   - `prep.status == READY` → `AppReadiness.READY`, `ContentAvailability.PRESENT`
   - `prep.status == PREPARING` → `AppReadiness.PREPARING`
-  - `prep.status == ERROR` or `NOT_STARTED` → fall back to routes-present proxy (`READY` if routes non-empty else `NOT_READY`) — keeps a sane state if content was side-loaded.
+  - `prep.status == ERROR` or `NOT_STARTED` → fall back to routes-present proxy (`READY` if routes non-empty else `NOT_READY`) - keeps a sane state if content was side-loaded.
 > Additive, single-site change (mirrors how FR-01 added `observeActiveRun` to FR-02). If FR-01 is unimplemented, fold this into FR-01 instead. Resolves FR-01 §12.2 open question ("where does FR-11 persist the ready flag").
 
 **Done when**: FR-01 tests updated to feed a fake `PreparationRepository`; `PREPARING`/`READY` assertions pass.
@@ -650,16 +650,16 @@ class DownloadViewModel(
 **Goal**: Lock parsing, mapping, progress, gating, orchestration, VM. Prefer fakes over real DB/engine.
 **Files**: under `shared/src/commonTest/kotlin/com/example/ta33/`
 
-- **`ManifestParsingTest`** — `MockEngine` returns a manifest JSON; assert `ManifestDto` fields (version, content.url, tiles) and that `ignoreUnknownKeys` tolerates extra fields.
-- **`ContentMappingTest`** — `RouteDto.toDomain()`: ordinal/name/`GeoPoint(lat,lon)`/`radiusMeters` default 50.0; `routeId` back-filled onto controls.
-- **`ProgressReducerTest`** — precedence (any ERROR→ERROR; all DONE→DONE; any DOWNLOADING→DOWNLOADING; PAUSED; IDLE); byte-weighted fraction when all totals known; item-average fallback when a total is null; empty list → IDLE/0.0.
-- **`ConnectivityGatingTest`** — `networkAllows(WIFI_ONLY, CELLULAR)=false`, `(WIFI_ONLY, WIFI)=true`, `(WIFI_AND_CELLULAR, CELLULAR)=true`, `(*, NONE)=false`.
-- **`PrepareOfflinePackageUseCaseTest`** — with `MockEngine` (manifest+content JSON, a small tile body), a **fake `FileStorage`** (in-memory map), a **fake `RouteRepository`** (records `upsertRoute`), a **fake `PreparationRepository`**, and a fake `ConnectivityMonitor(WIFI)`:
+- **`ManifestParsingTest`** - `MockEngine` returns a manifest JSON; assert `ManifestDto` fields (version, content.url, tiles) and that `ignoreUnknownKeys` tolerates extra fields.
+- **`ContentMappingTest`** - `RouteDto.toDomain()`: ordinal/name/`GeoPoint(lat,lon)`/`radiusMeters` default 50.0; `routeId` back-filled onto controls.
+- **`ProgressReducerTest`** - precedence (any ERROR→ERROR; all DONE→DONE; any DOWNLOADING→DOWNLOADING; PAUSED; IDLE); byte-weighted fraction when all totals known; item-average fallback when a total is null; empty list → IDLE/0.0.
+- **`ConnectivityGatingTest`** - `networkAllows(WIFI_ONLY, CELLULAR)=false`, `(WIFI_ONLY, WIFI)=true`, `(WIFI_AND_CELLULAR, CELLULAR)=true`, `(*, NONE)=false`.
+- **`PrepareOfflinePackageUseCaseTest`** - with `MockEngine` (manifest+content JSON, a small tile body), a **fake `FileStorage`** (in-memory map), a **fake `RouteRepository`** (records `upsertRoute`), a **fake `PreparationRepository`**, and a fake `ConnectivityMonitor(WIFI)`:
   - happy path → routes persisted, tile bytes written, `markReady(version)` called, terminal progress `DONE`;
   - **resume** → pre-seed content asset `DONE` + a tile at half size → content not re-persisted, tile Range-resumes (fake asserts append offset), ends `DONE`;
   - **blocked** → `ConnectivityMonitor(CELLULAR)` + `WIFI_ONLY` → emits `PAUSED`, no manifest fetch, no `markReady`;
   - **error** → `MockEngine` 500 on a tile → that item `ERROR`, overall `ERROR`, `markError()`, other items untouched.
-- **`DownloadViewModelTest`** — `runTest` + `Dispatchers.setMain(StandardTestDispatcher())`: `start()` drives state to `DONE`; `setNetworkPreference(WIFI_ONLY)` on cellular sets `blockedByNetwork`; a connectivity emission to cellular mid-run auto-pauses (job cancelled).
+- **`DownloadViewModelTest`** - `runTest` + `Dispatchers.setMain(StandardTestDispatcher())`: `start()` drives state to `DONE`; `setNetworkPreference(WIFI_ONLY)` on cellular sets `blockedByNetwork`; a connectivity emission to cellular mid-run auto-pauses (job cancelled).
 
 **Done when**: `./gradlew :shared:allTests` green.
 
@@ -686,9 +686,9 @@ class DownloadViewModel(
 
 ## 6. SECURITY CONSIDERATIONS
 
-- **Input validation**: Content is **read-only, remote-sourced** — validate before persisting: require non-blank `route.id`/`control.id`, finite `lat`/`lon` (`-90..90`, `-180..180`), `radiusMeters > 0`, `distanceKm >= 0`; reject the content item on violation rather than writing bad rows. Use `Json { ignoreUnknownKeys = true }` (tolerate additive fields) but treat missing required fields as errors.
-- **Transport**: Use **HTTPS** for the content host. If a plaintext dev host is temporarily needed, scope it to debug builds (Android `usesCleartextTraffic` on a debug manifest; iOS ATS exception) — never ship cleartext. Optionally verify `sha256` from the manifest for downloaded files (integrity).
-- **Auth/Access control**: None in Etapa 1 — content is public/read-only, participant anonymous. No tokens stored (Etapa 2, Keystore/Keychain per stack §4).
+- **Input validation**: Content is **read-only, remote-sourced** - validate before persisting: require non-blank `route.id`/`control.id`, finite `lat`/`lon` (`-90..90`, `-180..180`), `radiusMeters > 0`, `distanceKm >= 0`; reject the content item on violation rather than writing bad rows. Use `Json { ignoreUnknownKeys = true }` (tolerate additive fields) but treat missing required fields as errors.
+- **Transport**: Use **HTTPS** for the content host. If a plaintext dev host is temporarily needed, scope it to debug builds (Android `usesCleartextTraffic` on a debug manifest; iOS ATS exception) - never ship cleartext. Optionally verify `sha256` from the manifest for downloaded files (integrity).
+- **Auth/Access control**: None in Etapa 1 - content is public/read-only, participant anonymous. No tokens stored (Etapa 2, Keystore/Keychain per stack §4).
 - **Sensitive data**: Downloaded routes/coordinates + tiles stay **on-device** (app-private `filesDir`/Documents). No upload. No PII collected during download.
 - **Logging**: Napier at debug for URLs/sizes/progress; **do not** log full response bodies or coordinate payloads at info level; never log to persistent files. Redact the base URL host only if it later carries a token (it does not in Etapa 1).
 
@@ -698,14 +698,14 @@ class DownloadViewModel(
 
 > User opted out of clarification (`skip questions` / `proceed directly`). Accepted defaults recorded here.
 
-1. **FR-02 is implemented first** — its models, `RouteRepository.upsertRoute`, `Ta33Database`, `TimeProvider`, `IdGenerator`, and `appModule` exist and are referenced (not duplicated). If wrong: FR-11 cannot compile; do FR-02 first.
-2. **Manifest-based content layout** — a small `manifest.json` (version + content URL + tile list) is fetched first, then content JSON, then tiles. If the organizer ships a single combined JSON instead, drop the manifest step and read tiles from a fixed list (localized change in the use-case).
-3. **Content persists via `upsertRoute`** (FR-02 §12.3 seam), so re-runs are idempotent. If FR-02's signature differs, adapt the call — do not redefine the repo.
+1. **FR-02 is implemented first** - its models, `RouteRepository.upsertRoute`, `Ta33Database`, `TimeProvider`, `IdGenerator`, and `appModule` exist and are referenced (not duplicated). If wrong: FR-11 cannot compile; do FR-02 first.
+2. **Manifest-based content layout** - a small `manifest.json` (version + content URL + tile list) is fetched first, then content JSON, then tiles. If the organizer ships a single combined JSON instead, drop the manifest step and read tiles from a fixed list (localized change in the use-case).
+3. **Content persists via `upsertRoute`** (FR-02 §12.3 seam), so re-runs are idempotent. If FR-02's signature differs, adapt the call - do not redefine the repo.
 4. **Enums stored as TEXT, parsed in Kotlin** (matches FR-02 `SyncStatus.fromDb`); no column adapters. Impact: swapping to adapters later is localized.
 5. **`FileStorage`/`ConnectivityMonitor`/`HttpClientEngine` provided via `platformModule`** (same pattern as the SQLDelight `SqlDriver`), not `expect class`. Impact if wrong: minor DI reshuffle.
-6. **Sequential downloads** (content then tiles). If tiles must parallelize for speed, see §12.1 — reducer already supports concurrent per-item updates.
+6. **Sequential downloads** (content then tiles). If tiles must parallelize for speed, see §12.1 - reducer already supports concurrent per-item updates.
 7. **Persisted `Preparation` becomes FR-01's readiness source** (Step 12 additive seam). Resolves FR-01 §12.2. If FR-01 is unimplemented, fold Step 12 into FR-01.
-8. **Configurable dev URL placeholder** (`example.invalid`) until the organizer delivers the real host/data (project-stack §10). No code change to repoint — only `ContentConfig.baseUrl`.
+8. **Configurable dev URL placeholder** (`example.invalid`) until the organizer delivers the real host/data (project-stack §10). No code change to repoint - only `ContentConfig.baseUrl`.
 9. **Foreground-only download** in Etapa 1 (runs in `viewModelScope`); OS background-download services are out of scope.
 10. **HTTP `Range` resume with graceful 200 fallback** is sufficient for Etapa 1; no multi-connection/segmented downloading.
 11. **Only Android + iOS targets**, so `Dispatchers.Default` + OkHttp/Darwin engines + native/android file & connectivity APIs suffice.
@@ -717,13 +717,13 @@ class DownloadViewModel(
 ## 8. QUICK REFERENCE
 
 ### Files to Modify
-- `gradle/libs.versions.toml` — add `ktor-client-mock` (and `kotlinx-coroutines-test` if FR-02 unmerged).
-- `shared/build.gradle.kts` — add test deps to `commonTest`.
-- `shared/src/commonMain/kotlin/com/example/ta33/di/PlatformModule.kt` (+ `.android.kt`, `.ios.kt`) — provide `HttpClientEngine`, `FileStorage`, `ConnectivityMonitor`.
-- `shared/src/commonMain/kotlin/com/example/ta33/di/AppModule.kt` — register config, HttpClient, remote source, repos, use-cases, ViewModel.
-- `shared/src/commonMain/kotlin/com/example/ta33/di/Koin.kt` — add `ViewModelProvider.downloadViewModel()`.
-- `androidApp/src/main/AndroidManifest.xml` — `INTERNET` + `ACCESS_NETWORK_STATE`.
-- **(FR-01 seam)** `presentation/navigation/AppStateReducer.kt` + `presentation/AppViewModel.kt` — read `observePreparationState()`.
+- `gradle/libs.versions.toml` - add `ktor-client-mock` (and `kotlinx-coroutines-test` if FR-02 unmerged).
+- `shared/build.gradle.kts` - add test deps to `commonTest`.
+- `shared/src/commonMain/kotlin/com/example/ta33/di/PlatformModule.kt` (+ `.android.kt`, `.ios.kt`) - provide `HttpClientEngine`, `FileStorage`, `ConnectivityMonitor`.
+- `shared/src/commonMain/kotlin/com/example/ta33/di/AppModule.kt` - register config, HttpClient, remote source, repos, use-cases, ViewModel.
+- `shared/src/commonMain/kotlin/com/example/ta33/di/Koin.kt` - add `ViewModelProvider.downloadViewModel()`.
+- `androidApp/src/main/AndroidManifest.xml` - `INTERNET` + `ACCESS_NETWORK_STATE`.
+- **(FR-01 seam)** `presentation/navigation/AppStateReducer.kt` + `presentation/AppViewModel.kt` - read `observePreparationState()`.
 
 ### Files to Create
 - `data/remote/ContentConfig.kt`, `HttpClientFactory.kt`, `ContentRemoteDataSource.kt`
@@ -737,11 +737,11 @@ class DownloadViewModel(
 - `domain/usecase/PrepareOfflinePackageUseCase.kt`, `ObservePreparationStateUseCase.kt`
 - `presentation/DownloadViewModel.kt`
 - SQLDelight: `Preparation.sq`, `DownloadedAsset.sq`
-- `commonTest/…` — `ManifestParsingTest`, `ContentMappingTest`, `ProgressReducerTest`, `ConnectivityGatingTest`, `PrepareOfflinePackageUseCaseTest`, `DownloadViewModelTest` (+ fakes: `FakeFileStorage`, `FakeConnectivityMonitor`, `FakeRouteRepository`, `FakePreparationRepository`).
+- `commonTest/…` - `ManifestParsingTest`, `ContentMappingTest`, `ProgressReducerTest`, `ConnectivityGatingTest`, `PrepareOfflinePackageUseCaseTest`, `DownloadViewModelTest` (+ fakes: `FakeFileStorage`, `FakeConnectivityMonitor`, `FakeRouteRepository`, `FakePreparationRepository`).
 
 ### Dependencies
-- `io.ktor:ktor-client-mock` @ `ktor` (3.5.0) — test-only, `MockEngine`.
-- `org.jetbrains.kotlinx:kotlinx-coroutines-test` @ `coroutines` (1.10.2) — `runTest` (via FR-02 if merged).
+- `io.ktor:ktor-client-mock` @ `ktor` (3.5.0) - test-only, `MockEngine`.
+- `org.jetbrains.kotlinx:kotlinx-coroutines-test` @ `coroutines` (1.10.2) - `runTest` (via FR-02 if merged).
 - (Already present: ktor-client-core/content-negotiation/serialization-json, okhttp (android), darwin (ios), kotlinx-serialization-json, SQLDelight 2.1.0 + coroutines-ext + drivers, Koin 4.1.0, lifecycle-viewmodel.)
 
 ### Commands
@@ -771,27 +771,27 @@ xcodebuild -project iosApp/iosApp.xcodeproj -scheme iosApp -configuration Debug 
 | Approach | Pros | Cons | Selected? |
 |----------|------|------|-----------|
 | **A. Manifest + streamed items via Ktor into `FileStorage`/`RouteRepository`, pure reducer, persisted `Preparation`, sequential, Range-resume** | Clean layering; idempotent + resumable; reuses FR-02 seam; testable with `MockEngine`; swappable URL (§10) | Sequential is slower than parallel for many tiles; Range-resume needs server support (has fallback) | ✅ |
-| B. **Platform-native download managers** (Android `DownloadManager`/`WorkManager`, iOS `URLSession` background) | True OS background downloads survive app kill; battery-friendly | Two divergent native impls, hard to unit-test in `commonTest`, more surface for store review; overkill for Etapa 1 foreground prep | — |
-| C. **Bundle content/tiles in the app binary** (no download) | Simplest, always offline | Fails project-stack §10 (data not ready, must be swappable without a release); bloats binary; can't update content per event | — |
-| D. **Parallel tile downloads** (fan-out with a concurrency limit) | Faster on fat Wi-Fi | More complex cancel/resume + progress; marginal benefit for a handful of tilesets; reducer already supports it later | — (deferred) |
+| B. **Platform-native download managers** (Android `DownloadManager`/`WorkManager`, iOS `URLSession` background) | True OS background downloads survive app kill; battery-friendly | Two divergent native impls, hard to unit-test in `commonTest`, more surface for store review; overkill for Etapa 1 foreground prep | - |
+| C. **Bundle content/tiles in the app binary** (no download) | Simplest, always offline | Fails project-stack §10 (data not ready, must be swappable without a release); bloats binary; can't update content per event | - |
+| D. **Parallel tile downloads** (fan-out with a concurrency limit) | Faster on fat Wi-Fi | More complex cancel/resume + progress; marginal benefit for a handful of tilesets; reducer already supports it later | - (deferred) |
 
-**Why the selected approach won**: It keeps the whole download subsystem in shared, unit-testable Kotlin (per stack goals), reuses the FR-02 persistence seam with zero duplication, satisfies the "swappable external JSON" mandate (§10), and delivers resumable, network-gated preparation without the cost/complexity of native background frameworks — which can be layered in later (Approach B) if real-world tile sizes demand it.
+**Why the selected approach won**: It keeps the whole download subsystem in shared, unit-testable Kotlin (per stack goals), reuses the FR-02 persistence seam with zero duplication, satisfies the "swappable external JSON" mandate (§10), and delivers resumable, network-gated preparation without the cost/complexity of native background frameworks - which can be layered in later (Approach B) if real-world tile sizes demand it.
 
 ### 12.2 Open Questions
 
-- [ ] **Exact manifest schema + whether content is one JSON or per-route files** — Proposed direction: single `manifest.json` (version + content URL + tile list) as designed; confirm with the organizer when data is delivered; DTOs are additive-tolerant (`ignoreUnknownKeys`).
-- [ ] **Tile format/granularity (one big MBTiles vs many vector tiles)** — Proposed direction: treat each manifest `tiles[]` entry as one downloadable file; FR-06 defines how MapLibre consumes them. Revisit `relativePath`/`format` when tile generation (stack §11) lands.
-- [ ] **Integrity checking** — Proposed direction: honour optional `sha256` per asset (verify after write, delete+retry on mismatch); make it required once the host provides hashes.
-- [ ] **Content update / re-download policy when `manifestVersion` changes** — Proposed direction: for Etapa 1, if version differs → `clearAssets()` + full re-run; granular per-item diffing is a later optimization.
-- [ ] **Should download continue in the background / be re-triggerable outside the prep screen?** — Proposed direction: foreground-only in `viewModelScope` for Etapa 1; evaluate `WorkManager`/`URLSession` background (Approach B) only if field tests show it's needed.
+- [ ] **Exact manifest schema + whether content is one JSON or per-route files** - Proposed direction: single `manifest.json` (version + content URL + tile list) as designed; confirm with the organizer when data is delivered; DTOs are additive-tolerant (`ignoreUnknownKeys`).
+- [ ] **Tile format/granularity (one big MBTiles vs many vector tiles)** - Proposed direction: treat each manifest `tiles[]` entry as one downloadable file; FR-06 defines how MapLibre consumes them. Revisit `relativePath`/`format` when tile generation (stack §11) lands.
+- [ ] **Integrity checking** - Proposed direction: honour optional `sha256` per asset (verify after write, delete+retry on mismatch); make it required once the host provides hashes.
+- [ ] **Content update / re-download policy when `manifestVersion` changes** - Proposed direction: for Etapa 1, if version differs → `clearAssets()` + full re-run; granular per-item diffing is a later optimization.
+- [ ] **Should download continue in the background / be re-triggerable outside the prep screen?** - Proposed direction: foreground-only in `viewModelScope` for Etapa 1; evaluate `WorkManager`/`URLSession` background (Approach B) only if field tests show it's needed.
 
 ### 12.3 Suggestions & Follow-ups
 
-- Add a **JVM SQLite driver** in `androidHostTest` for a real DB integration test of `PreparationRepositoryImpl`/`DownloadedAsset` (beyond fakes) — good coverage, out of scope here.
+- Add a **JVM SQLite driver** in `androidHostTest` for a real DB integration test of `PreparationRepositoryImpl`/`DownloadedAsset` (beyond fakes) - good coverage, out of scope here.
 - Add a Koin **`checkModules()`** test to catch DI-graph breakage across FR-01/FR-02/FR-11.
 - When **FR-06** lands, expose a `FileStorage.baseDir() + "/tiles"` accessor (or a small `TileStore`) so MapLibre points at the downloaded files without knowing FR-11 internals.
 - Consider **Turbine** for `StateFlow`/`Flow` assertions in `DownloadViewModelTest`/orchestration tests (optional test-only dep).
 - Wire the **prepared-URL into a debug settings screen** later so QA can point at staging vs the organizer's host without a rebuild (UI phase).
-- When **Etapa 2 sync** arrives, the same `ContentRemoteDataSource`/HttpClient config is reused for uploads — keep the client construction in one place (`HttpClientFactory`).
+- When **Etapa 2 sync** arrives, the same `ContentRemoteDataSource`/HttpClient config is reused for uploads - keep the client construction in one place (`HttpClientFactory`).
 
-> Section 9 (Design Reference) omitted: logic-only, no UI/visual spec. Section 10 (Corrections From Current State) omitted: greenfield FR-11 with no prior implementation — the FR-01 readiness change (Step 12) is an additive coordinated seam, not a correction, and is covered in Steps/Assumptions.
+> Section 9 (Design Reference) omitted: logic-only, no UI/visual spec. Section 10 (Corrections From Current State) omitted: greenfield FR-11 with no prior implementation - the FR-01 readiness change (Step 12) is an additive coordinated seam, not a correction, and is covered in Steps/Assumptions.

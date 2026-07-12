@@ -10,14 +10,14 @@ import androidx.compose.ui.unit.sp
  * Typografie z TA33 Design System.
  *
  * TODO(fonty): design používá **Big Shoulders Display** (display/button) a **Inter** (UI/body).
- * Zatím se používá systémový [FontFamily.Default] jako fallback — až se přidají TTF do
+ * Zatím se používá systémový [FontFamily.Default] jako fallback - až se přidají TTF do
  * `androidApp/src/main/res/font/`, stačí nahradit tyhle dvě konstanty a zbytek škály zůstane.
  */
 object Ta33Type {
     val Display: FontFamily = FontFamily.Default // ← Big Shoulders Display
     val Body: FontFamily = FontFamily.Default // ← Inter
 
-    // Display (chunky, uppercase) — nadpisové numerické prvky
+    // Display (chunky, uppercase) - nadpisové numerické prvky
     val display1 = TextStyle(
         fontFamily = Display, fontSize = 40.sp, lineHeight = 40.sp,
         fontWeight = FontWeight.Black, letterSpacing = 0.01.em,

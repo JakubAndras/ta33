@@ -1,7 +1,7 @@
 import SwiftUI
 import Shared
 
-/// Mapa (RD-02) — kanonický `VariantHybrid`. Pozoruje sdílený `MapaViewModel` přes `MapaModel`.
+/// Mapa (RD-02) - kanonický `VariantHybrid`. Pozoruje sdílený `MapaViewModel` přes `MapaModel`.
 struct MapaView: View {
     @StateObject private var model = MapaModel()
 

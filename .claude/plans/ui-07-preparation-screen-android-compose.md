@@ -1,13 +1,13 @@
-# UI-07 — Preparation / Stažení dat akce (Android Compose)
+# UI-07 - Preparation / Stažení dat akce (Android Compose)
 
-> **Summary**: Android gate obrazovka „Příprava dat akce" nad `DownloadViewModel` (FR-11) — prompt/průběh/pauza/chyba/Wi-Fi-gating; po dokončení shell sám přejde do Main. Nahrazuje `PreparationPlaceholder`.
+> **Summary**: Android gate obrazovka „Příprava dat akce" nad `DownloadViewModel` (FR-11) - prompt/průběh/pauza/chyba/Wi-Fi-gating; po dokončení shell sám přejde do Main. Nahrazuje `PreparationPlaceholder`.
 
 ---
 
 ## 1. PROBLEM & SOLUTION
 
 ### 1.1 Problem Statement
-App-shell (ui-03) ukazuje při `readiness NOT_READY/PREPARING` jen `PreparationPlaceholder`. Logika stahování offline balíčku (FR-11, `DownloadViewModel`) je hotová a nespotřebovaná — chybí obrazovka, kde si uživatel stáhne data akce.
+App-shell (ui-03) ukazuje při `readiness NOT_READY/PREPARING` jen `PreparationPlaceholder`. Logika stahování offline balíčku (FR-11, `DownloadViewModel`) je hotová a nespotřebovaná - chybí obrazovka, kde si uživatel stáhne data akce.
 
 ### 1.2 Solution Overview
 `PreparationScreen` (Compose) přes `koinViewModel()` odebírá `DownloadViewModel.state` (`DownloadUiState`) a podle `progress.overallStatus` + `blockedByNetwork` vykreslí: výzvu ke stažení (IDLE), průběh + pauzu (DOWNLOADING), pokračování (PAUSED), chybu + opakování (ERROR), případně upozornění „čeká na Wi-Fi". Ovládá `start/pause/resume/retry/setNetworkPreference`. Po dokončení se `preparation.status` → READY promítne přes `ObserveAppStateUseCase` do `AppReadiness.READY` a `Ta33App` sám přepne na `MainShell` (žádná explicitní navigace). Nahradí `PreparationPlaceholder` v `Ta33App`.
@@ -19,8 +19,8 @@ App-shell (ui-03) ukazuje při `readiness NOT_READY/PREPARING` jen `PreparationP
 - Napojení do `Ta33App` (větev NOT_READY/PREPARING) + Deník `onDownload` navádí sem (přes shell gate).
 
 ### 1.4 Scope: What This IS NOT
-- **iOS** verze — ui-08.
-- **Reálná data** balíčku (manifest/dlaždice) — jen UI nad VM; skutečný obsah řeší FR-11 backend (statický JSON, dodá se).
+- **iOS** verze - ui-08.
+- **Reálná data** balíčku (manifest/dlaždice) - jen UI nad VM; skutečný obsah řeší FR-11 backend (statický JSON, dodá se).
 - Odhad velikosti „84 MB" je zástupný text (skutečná velikost z manifestu je follow-up).
 - Scan flow, Mapa, ostatní obrazovky.
 
@@ -37,7 +37,7 @@ App-shell (ui-03) ukazuje při `readiness NOT_READY/PREPARING` jen `PreparationP
 | 6 | ERROR: chybová hláška + Zkusit znovu → `retry()` | preview |
 | 7 | `blockedByNetwork`: upozornění „Čeká na Wi-Fi", stahování se nespustí | preview |
 | 8 | Wi-Fi-only přepínač volá `setNetworkPreference` | preview |
-| 9 | Žádný hardcoded hex/dp v UI — vše přes theme | code review |
+| 9 | Žádný hardcoded hex/dp v UI - vše přes theme | code review |
 
 ---
 
@@ -76,12 +76,12 @@ Po `DONE` se `preparation.status=READY` → `AppReadiness.READY` → `Ta33App` p
 
 ### Step 1: String resources (cs)
 **Files**: `shared/.../composeResources/values{,-cs}/strings.xml`
-Klíče: `prep_title` („Příprava dat akce"), `prep_intro` („Stáhni si trasy, kontroly a mapu, dokud máš signál."), `prep_download_cta` („Stáhnout data akce · 84 MB"), `prep_pause` („Pozastavit"), `prep_resume` („Pokračovat"), `prep_retry` („Zkusit znovu"), `prep_wifi_only` („Jen přes Wi-Fi"), `prep_waiting_wifi` („Čeká na Wi-Fi — připoj se, ať můžeš stáhnout data"), `prep_error` („Stahování selhalo"), `prep_downloading` („Stahuji data akce…").
+Klíče: `prep_title` („Příprava dat akce"), `prep_intro` („Stáhni si trasy, kontroly a mapu, dokud máš signál."), `prep_download_cta` („Stáhnout data akce · 84 MB"), `prep_pause` („Pozastavit"), `prep_resume` („Pokračovat"), `prep_retry` („Zkusit znovu"), `prep_wifi_only` („Jen přes Wi-Fi"), `prep_waiting_wifi` („Čeká na Wi-Fi - připoj se, ať můžeš stáhnout data"), `prep_error` („Stahování selhalo"), `prep_downloading` („Stahuji data akce…").
 **Done when**: klíče dostupné.
 
 ### Step 2: Progress komponenta (reuse/extract)
-**Files**: `ui/components/ProgressBar.kt` (create — pokud ještě není extrahovaný z Deníku)
-- `Ta33ProgressBar(fraction: Float)` — track `surfaceVariant`, fill `primary`, výška 10.dp, `Ta33Radius.pill`. (Deník má inline progress bar; extrahovat sem pro reuse; Deník nechat/přepnout na tuto — volitelné.)
+**Files**: `ui/components/ProgressBar.kt` (create - pokud ještě není extrahovaný z Deníku)
+- `Ta33ProgressBar(fraction: Float)` - track `surfaceVariant`, fill `primary`, výška 10.dp, `Ta33Radius.pill`. (Deník má inline progress bar; extrahovat sem pro reuse; Deník nechat/přepnout na tuto - volitelné.)
 **Done when**: `@Preview`; kompiluje.
 
 ### Step 3: Stateless `PreparationContent`
@@ -117,7 +117,7 @@ fun PreparationContent(
     }
 }
 ```
-`ItemRow(DownloadItemProgress)` — label + malý progress/stav (DONE=fajfka, ERROR=vykřičník). `formatKm`-style helpery netřeba; bytes formát volitelný (MB), jinak jen fraction.
+`ItemRow(DownloadItemProgress)` - label + malý progress/stav (DONE=fajfka, ERROR=vykřičník). `formatKm`-style helpery netřeba; bytes formát volitelný (MB), jinak jen fraction.
 **Done when**: `@Preview` pro IDLE, DOWNLOADING, PAUSED, ERROR, blockedByNetwork.
 
 ### Step 4: Stateful `PreparationScreen` + napojení do `Ta33App`
@@ -153,17 +153,17 @@ Ověřit `NetworkPreference` hodnoty (WIFI_ONLY / ANY nebo podobně) v enumu.
 - Stahuje se z konfigurovatelné URL (FR-11 `ContentConfig`); HTTPS. Žádná citlivá data v UI. Nelogovat URL s případnými tokeny (Etapa 2).
 
 ## 7. ASSUMPTIONS
-1. **Přechod po DONE řeší readiness gate**, ne obrazovka — `Ta33App` už přepíná dle `AppReadiness`.
+1. **Přechod po DONE řeší readiness gate**, ne obrazovka - `Ta33App` už přepíná dle `AppReadiness`.
 2. **`DownloadViewModel` startuje sám** (observuje connectivity + preparation v init); jen `koinViewModel()` + intents.
-3. **`NetworkPreference`** má hodnoty pro „jen Wi-Fi" a „libovolná" — ověřit názvy (WIFI_ONLY / ANY).
+3. **`NetworkPreference`** má hodnoty pro „jen Wi-Fi" a „libovolná" - ověřit názvy (WIFI_ONLY / ANY).
 4. **Velikost „84 MB"** je zástupná; skutečná z manifestu je follow-up.
-5. **Deník `onDownload`** (ui-01) navádí sem — ale protože Preparation je gate nad readiness, stačí, že shell při NOT_READY ukáže Preparation; `onDownload` může zůstat no-op/TODO, nebo (volitelně) rovnou `DownloadViewModel.start()`.
+5. **Deník `onDownload`** (ui-01) navádí sem - ale protože Preparation je gate nad readiness, stačí, že shell při NOT_READY ukáže Preparation; `onDownload` může zůstat no-op/TODO, nebo (volitelně) rovnou `DownloadViewModel.start()`.
 
 ## 8. QUICK REFERENCE
 ### Files to Create
 - `ui/components/ProgressBar.kt`, `ui/preparation/PreparationContent.kt`, `ui/preparation/PreparationScreen.kt`
 ### Files to Modify
-- `ui/shell/Ta33App.kt` — NOT_READY/PREPARING → `PreparationScreen`
+- `ui/shell/Ta33App.kt` - NOT_READY/PREPARING → `PreparationScreen`
 - `shared/.../composeResources/values{,-cs}/strings.xml`
 ### Commands
 ```bash
@@ -199,12 +199,12 @@ Ověřit `NetworkPreference` hodnoty (WIFI_ONLY / ANY nebo podobně) v enumu.
 | Approach | Pros | Cons | Selected? |
 |---|---|---|---|
 | **A. Gate obrazovka řízená readiness, přechod přes AppReadiness** | Konzistentní s FR-01, žádná duplicitní navigace | Přechod „neviditelný" (gate) | ✅ |
-| B. Explicitní navigace Preparation → Main po DONE | Explicitní | Duplikuje readiness logiku, riziko rozsynchronizování | — |
-| C. Preparation jako modal nad Deníkem | Blízko designu (download prompt v Deníku) | Míchá gate a obsah, hůř pro PREPARING stav | — |
+| B. Explicitní navigace Preparation → Main po DONE | Explicitní | Duplikuje readiness logiku, riziko rozsynchronizování | - |
+| C. Preparation jako modal nad Deníkem | Blízko designu (download prompt v Deníku) | Míchá gate a obsah, hůř pro PREPARING stav | - |
 ### 12.2 Open Questions
-- [ ] **`NetworkPreference` hodnoty** — Proposed: ověřit enum (WIFI_ONLY/ANY) na buildu.
-- [ ] **Deník `onDownload` cíl** — Proposed: no-op (gate stačí), nebo `start()`; potvrdit chování.
-- [ ] **Velikost balíčku** — Proposed: zástupné „84 MB"; napojit z manifestu později.
+- [ ] **`NetworkPreference` hodnoty** - Proposed: ověřit enum (WIFI_ONLY/ANY) na buildu.
+- [ ] **Deník `onDownload` cíl** - Proposed: no-op (gate stačí), nebo `start()`; potvrdit chování.
+- [ ] **Velikost balíčku** - Proposed: zástupné „84 MB"; napojit z manifestu později.
 ### 12.3 Suggestions & Follow-ups
 - iOS Preparation (ui-08).
 - Skutečná velikost/manifest z FR-11 backendu; MB formát bytes.

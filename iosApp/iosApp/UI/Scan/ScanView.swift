@@ -1,7 +1,7 @@
 import SwiftUI
 import Shared
 
-/// Celoobrazovkový QR sken (FR-09) — slate-900 pozadí, oranžový scan rámeček s pulzující linkou.
+/// Celoobrazovkový QR sken (FR-09) - slate-900 pozadí, oranžový scan rámeček s pulzující linkou.
 /// Kamera je zatím zástupná plocha; start/cíl se simuluje tlačítky, která feednou payload do
 /// `TimingViewModel.onQrScanned(raw:)`. Poslední výsledek (`TimingUiState.lastScan`) se zobrazí
 /// jako hláška pod textem.

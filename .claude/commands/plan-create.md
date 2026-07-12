@@ -18,7 +18,7 @@ PLAN_OUTPUT_DIRECTORY: read from `STACK_FILE` (section "Plan Output Directory");
 
 ## Project Stack Reference
 
-This command is stack-agnostic. Before analyzing the request, read `STACK_FILE` to learn this project's technology, module structure, build/verify commands, theming source, and conventions. Use it to ground the plan's technical design, file paths, success criteria, and design-token mappings in the real stack — never invent framework details.
+This command is stack-agnostic. Before analyzing the request, read `STACK_FILE` to learn this project's technology, module structure, build/verify commands, theming source, and conventions. Use it to ground the plan's technical design, file paths, success criteria, and design-token mappings in the real stack - never invent framework details.
 
 **If `STACK_FILE` does not exist**, still produce a plan, but: (a) note in Section 7 (Assumptions) that no project-stack file was found, and (b) list "Create `.claude/project-stack.md`" as the first open question in Section 12. Do not fabricate specific commands or file layouts you cannot verify.
 
@@ -28,12 +28,12 @@ This command is stack-agnostic. Before analyzing the request, read `STACK_FILE` 
 - Assume the user knows what they want but may not express it perfectly - extract intent, not just literal words
 - If prompt is vague/incomplete: infer reasonable defaults, document assumptions in the plan
 - If prompt contains contradictions: choose the most sensible interpretation, note the resolution
-- If critical information is truly missing: surface it in the Scope Clarification phase (see below) — never as a standalone one-off question outside that phase
+- If critical information is truly missing: surface it in the Scope Clarification phase (see below) - never as a standalone one-off question outside that phase
 - Never fail silently - always produce output, documenting uncertainties explicitly
 
 ### Scope Clarification
 
-**When to run**: After Analyze Input, BEFORE Design Solution — unless skipped (see below).
+**When to run**: After Analyze Input, BEFORE Design Solution - unless skipped (see below).
 
 **Skip conditions**: If `USER_PROMPT` contains any of the following phrases, skip this phase entirely. Log accepted defaults in Section 7 with the note "User opted out of clarification":
 - `skip questions`
@@ -49,15 +49,15 @@ This command is stack-agnostic. Before analyzing the request, read `STACK_FILE` 
 
 **When NOT to ask**: If the prompt is specific enough to make confident calls on all of the above, fall back to inferred defaults and document them in Section 7. Do not ask.
 
-**How to ask**: Use `AskUserQuestion` — one batch, never salami-style:
-- Maximum **2–5 questions**. Prefer 2 sharp questions over 5 vague ones.
-- Every question must include a proposed default: `"Default: X — if you don't specify, I'll go with this."`
+**How to ask**: Use `AskUserQuestion` - one batch, never salami-style:
+- Maximum **2-5 questions**. Prefer 2 sharp questions over 5 vague ones.
+- Every question must include a proposed default: `"Default: X - if you don't specify, I'll go with this."`
 - Focus only on:
   - ✅ Scope boundaries (in/out, what stays untouched)
   - ✅ Alternative directions (local fix vs systemic refactor, symptom vs root cause)
   - ✅ Ripple effects (neighboring screens, call sites, tests)
   - ✅ Critical technical forks that change the plan shape
-  - ❌ Not naming, formatting, file structure, or minor implementation details — decide those yourself
+  - ❌ Not naming, formatting, file structure, or minor implementation details - decide those yourself
 - After receiving answers, log all accepted defaults (including confirmed ones) in Section 7.
 
 ### Solution Design
@@ -67,7 +67,7 @@ This command is stack-agnostic. Before analyzing the request, read `STACK_FILE` 
 - Map dependencies and integration points with existing systems
 
 ### Document Requirements
-- Follow the OUTPUT TEMPLATE exactly - sections 1–8 and 12 are mandatory, sections 9–11 are conditional (see rules below)
+- Follow the OUTPUT TEMPLATE exactly - sections 1-8 and 12 are mandatory, sections 9-11 are conditional (see rules below)
 - Section 12 (open questions, alternatives, suggestions) is intentionally the last section - it is what the reader sees last and must always be populated
 - Write for someone with zero context on this project
 - No vague steps like "figure out" or "determine" - be specific
@@ -81,8 +81,8 @@ This command is stack-agnostic. Before analyzing the request, read `STACK_FILE` 
 - **Section 11 (CHANGELOG)**: Always include. Start with `Initial plan created` entry. This section tracks revisions if the plan is updated later.
 
 ### Quality Standards
-- Verify all mandatory sections (1–8, 12) are present before saving
-- Verify conditional sections (9–11) are included/omitted per their rules
+- Verify all mandatory sections (1-8, 12) are present before saving
+- Verify conditional sections (9-11) are included/omitted per their rules
 - Section 12 MUST list at least 2 alternative approaches with tradeoffs (even if one is clearly best - document why the others were rejected)
 - Ensure code examples are syntactically correct
 - Confirm a developer could implement this without asking questions
@@ -95,7 +95,7 @@ This command is stack-agnostic. Before analyzing the request, read `STACK_FILE` 
 
 1. **Analyze Input** - Parse `USER_PROMPT` to understand core problem and desired outcome. Identify missing information. Infer reasonable defaults for gaps. Define clear acceptance criteria even if user didn't provide them. Check for escape-hatch phrases (`skip questions`, `no questions`, `proceed directly`, `just do it`).
 
-2. **Clarify Scope** - Apply the Scope Clarification rules above. If 2+ open scope questions exist and the user did not opt out, call `AskUserQuestion` with a single batch of 2–5 questions (each with a proposed default). Wait for answers before proceeding. If skipping, note all accepted defaults in Section 7.
+2. **Clarify Scope** - Apply the Scope Clarification rules above. If 2+ open scope questions exist and the user did not opt out, call `AskUserQuestion` with a single batch of 2-5 questions (each with a proposed default). Wait for answers before proceeding. If skipping, note all accepted defaults in Section 7.
 
 3. **Design Solution** - Ultrathink through implementation approaches. Select best approach with documented reasoning. Identify risks, edge cases, and integration points.
 
@@ -297,22 +297,22 @@ command
 
 ### 12.1 Alternative Approaches Considered
 
-> List 2–3 approaches that were evaluated, including the one selected. Show tradeoffs so a future reader can revisit the decision if constraints change.
+> List 2-3 approaches that were evaluated, including the one selected. Show tradeoffs so a future reader can revisit the decision if constraints change.
 
 | Approach | Pros | Cons | Selected? |
 |----------|------|------|-----------|
 | [Approach A] | [Pros] | [Cons] | ✅ |
-| [Approach B] | [Pros] | [Cons] | — |
-| [Approach C] | [Pros] | [Cons] | — |
+| [Approach B] | [Pros] | [Cons] | - |
+| [Approach C] | [Pros] | [Cons] | - |
 
-**Why the selected approach won**: [1–2 sentences tying back to project constraints / priorities]
+**Why the selected approach won**: [1-2 sentences tying back to project constraints / priorities]
 
 ### 12.2 Open Questions
 
 > Unresolved items. Each MUST have a proposed direction so the reader has a starting point, not just a blocker.
 
-- [ ] **[Question]** — Proposed direction: [suggested answer or how to find one]
-- [ ] **[Question]** — Proposed direction: [suggested answer or how to find one]
+- [ ] **[Question]** - Proposed direction: [suggested answer or how to find one]
+- [ ] **[Question]** - Proposed direction: [suggested answer or how to find one]
 
 ### 12.3 Suggestions & Follow-ups
 

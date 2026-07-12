@@ -1,13 +1,13 @@
-# UI-09 — Scan flow: QR sken + sběr kontroly + Splnění (Android Compose)
+# UI-09 - Scan flow: QR sken + sběr kontroly + Splnění (Android Compose)
 
-> **Summary**: Android scan flow — QR scan modal (start/cíl, FR-09) spouštěný scan FABem, nabídka sběru kontroly v dosahu (FR-08) a zelená obrazovka Splnění. Kamera zatím simulovaná (tlačítko), reálná CameraX+MLKit je follow-up.
+> **Summary**: Android scan flow - QR scan modal (start/cíl, FR-09) spouštěný scan FABem, nabídka sběru kontroly v dosahu (FR-08) a zelená obrazovka Splnění. Kamera zatím simulovaná (tlačítko), reálná CameraX+MLKit je follow-up.
 
 ---
 
 ## 1. PROBLEM & SOLUTION
 
 ### 1.1 Problem Statement
-Scan FAB v app-shellu (ui-03) má jen stub `onScan`. Logika časomíry (FR-09, `TimingViewModel`) a sběru kontrol přes GPS (FR-08, `ControlCollectionViewModel`) je hotová a nespotřebovaná — chybí scan modal, nabídka sběru a obrazovka Splnění.
+Scan FAB v app-shellu (ui-03) má jen stub `onScan`. Logika časomíry (FR-09, `TimingViewModel`) a sběru kontrol přes GPS (FR-08, `ControlCollectionViewModel`) je hotová a nespotřebovaná - chybí scan modal, nabídka sběru a obrazovka Splnění.
 
 ### 1.2 Solution Overview
 Dvě mechaniky:
@@ -23,9 +23,9 @@ Vše se hostí v `MainShell` (nad taby): scan FAB → ScanModal; candidate offer
 - Napojení do `MainShell`: scan FAB otevře modal; `ControlCollectionViewModel` bound na aktivní běh; offer + Splnění overlay.
 
 ### 1.4 Scope: What This IS NOT
-- **iOS** — ui-10.
-- **Reálná kamera** (CameraX + ML Kit Barcode) + oprávnění — jasně označený follow-up; teď jen simulace tlačítkem. (Rozhodnutí uživatele: „UI + simulace teď, kamera později".)
-- **Reálný GPS candidate** — produkuje ho FR-08 z živé polohy; v sandboxu neověřitelné, jen na zařízení. UI/wiring hotové.
+- **iOS** - ui-10.
+- **Reálná kamera** (CameraX + ML Kit Barcode) + oprávnění - jasně označený follow-up; teď jen simulace tlačítkem. (Rozhodnutí uživatele: „UI + simulace teď, kamera později".)
+- **Reálný GPS candidate** - produkuje ho FR-08 z živé polohy; v sandboxu neověřitelné, jen na zařízení. UI/wiring hotové.
 - Mapa, ostatní obrazovky.
 
 ---
@@ -42,7 +42,7 @@ Vše se hostí v `MainShell` (nad taby): scan FAB → ScanModal; candidate offer
 | 7 | `candidate != null` → `CollectionOfferSheet` s názvem + vzdáleností; „Sebrat" → `confirm()` | preview |
 | 8 | `lastResult == JustCollected` → `SplneniScreen` (zelená, název, čas); „Pokračovat" zavře | preview |
 | 9 | `AlreadyCollected`/`OutOfRange` → nekritická hláška, žádný pád | preview |
-| 10 | Žádný hardcoded hex/dp — vše přes theme | code review |
+| 10 | Žádný hardcoded hex/dp - vše přes theme | code review |
 
 ---
 
@@ -57,7 +57,7 @@ MainShell (aktivní běh: app.activeRunId/activeRouteId)
    ├─ if collection.candidate != null → CollectionOfferSheet(candidate, onCollect = confirm)
    └─ if collection.lastResult is JustCollected → SplneniScreen(control, time, onClose)
 ```
-`ScanModal` čte `TimingUiState.lastScan` (`ScanTimingResult`) pro feedback. Simulace: `onQrScanned(samplePayload)` — validní start/cíl payload dle `QrPayloadParser` formátu (agent ověří formát v parseru a QrTimingConfig).
+`ScanModal` čte `TimingUiState.lastScan` (`ScanTimingResult`) pro feedback. Simulace: `onQrScanned(samplePayload)` - validní start/cíl payload dle `QrPayloadParser` formátu (agent ověří formát v parseru a QrTimingConfig).
 
 ### 3.2 Key Decisions
 | Decision | Choice | Reasoning |
@@ -76,7 +76,7 @@ MainShell (aktivní běh: app.activeRunId/activeRouteId)
 
 ### Step 0: Zjistit QR payload formát
 **Files**: (čtení) `shared/.../domain/qr/QrPayloadParser.kt`, `domain/model/QrTimingConfig.kt`
-Zjisti, jak parser rozpozná start/cíl a route-scope, ať jdou sestavit validní simulační payloady (např. `TA33:START:<routeId>` — ověřit skutečný formát). Použij aktivní `routeId`.
+Zjisti, jak parser rozpozná start/cíl a route-scope, ať jdou sestavit validní simulační payloady (např. `TA33:START:<routeId>` - ověřit skutečný formát). Použij aktivní `routeId`.
 **Done when**: známý formát pro `simulateStart(routeId)` / `simulateFinish(routeId)`.
 
 ### Step 1: String resources (cs)
@@ -140,12 +140,12 @@ Pozn.: `lastResult` VM sám nevyčistí po zavření; přidat lokální `dismiss
 | Splnění „Pokračovat" | zavře overlay | lokální dismiss |
 
 ## 6. SECURITY CONSIDERATIONS
-- QR payload je veřejný identifikátor kontroly/trasy; žádná citlivá data. Kamera (follow-up) bude potřebovat `CAMERA` oprávnění — runtime request + zdůvodnění (store).
+- QR payload je veřejný identifikátor kontroly/trasy; žádná citlivá data. Kamera (follow-up) bude potřebovat `CAMERA` oprávnění - runtime request + zdůvodnění (store).
 - Poloha sběru je on-device (FR-08), neodesílá se. Nelogovat souřadnice.
 
 ## 7. ASSUMPTIONS
 1. **Kamera je simulovaná** (rozhodnutí uživatele); reálná CameraX+MLKit je follow-up na zařízení.
-2. **GPS candidate** produkuje FR-08 z živé polohy — v sandboxu neověřitelné; UI/wiring hotové, ověření na zařízení.
+2. **GPS candidate** produkuje FR-08 z živé polohy - v sandboxu neověřitelné; UI/wiring hotové, ověření na zařízení.
 3. **QR payload formát** je zjistitelný z `QrPayloadParser`/`QrTimingConfig` (Step 0).
 4. **Splnění dismiss** se řeší lokálním UI flagem (VM `lastResult` nevyčistí sám).
 5. **TimingViewModel/ControlCollectionViewModel** se bindují v shellu při aktivním běhu.
@@ -154,7 +154,7 @@ Pozn.: `lastResult` VM sám nevyčistí po zavření; přidat lokální `dismiss
 ### Files to Create
 - `ui/scan/{ScanModal,CollectionOfferSheet,SplneniScreen}.kt`
 ### Files to Modify
-- `ui/shell/MainShell.kt` — scan FAB → modal; candidate offer + Splnění; bind VM
+- `ui/shell/MainShell.kt` - scan FAB → modal; candidate offer + Splnění; bind VM
 - `shared/.../composeResources/values{,-cs}/strings.xml`
 ### Commands
 ```bash
@@ -189,14 +189,14 @@ Pozn.: `lastResult` VM sám nevyčistí po zavření; přidat lokální `dismiss
 | Approach | Pros | Cons | Selected? |
 |---|---|---|---|
 | **A. Simulace teď (tlačítka) + reálná kamera později** | Testovatelné, odblokuje UI/wiring | Kamera se dodělá zvlášť na zařízení | ✅ |
-| B. Reálná CameraX+MLKit hned | Kompletní | Velký nativní lift, v sandboxu neověřitelné | — |
-| C. Sběr jen přes „simulovat" bez FR-08 wiringu | Jednodušší | Zahodí hotovou FR-08 logiku | — |
+| B. Reálná CameraX+MLKit hned | Kompletní | Velký nativní lift, v sandboxu neověřitelné | - |
+| C. Sběr jen přes „simulovat" bez FR-08 wiringu | Jednodušší | Zahodí hotovou FR-08 logiku | - |
 ### 12.2 Open Questions
-- [ ] **QR payload formát** — Proposed: zjistit z parseru (Step 0); sestavit validní start/cíl string.
-- [ ] **Splnění dismiss** — Proposed: lokální `dismissed` flag; nezasahovat do VM.
-- [ ] **Auto-zavření modalu po Started/Finished?** — Proposed: krátká hláška, pak zavřít; potvrdit UX.
+- [ ] **QR payload formát** - Proposed: zjistit z parseru (Step 0); sestavit validní start/cíl string.
+- [ ] **Splnění dismiss** - Proposed: lokální `dismissed` flag; nezasahovat do VM.
+- [ ] **Auto-zavření modalu po Started/Finished?** - Proposed: krátká hláška, pak zavřít; potvrdit UX.
 ### 12.3 Suggestions & Follow-ups
-- **Reálná kamera** (CameraX + ML Kit Barcode) + `CAMERA` oprávnění — samostatný device plán, nahradí zástupnou plochu (`onQrScanned` zůstane stejné).
+- **Reálná kamera** (CameraX + ML Kit Barcode) + `CAMERA` oprávnění - samostatný device plán, nahradí zástupnou plochu (`onQrScanned` zůstane stejné).
 - iOS scan flow (ui-10).
-- FR-08 `ControlCollectionViewModel` candidate na zařízení (GPS) — terénní test.
-- Splnění i pro cíl (Finished) — zvážit oslavnou obrazovku po finiši.
+- FR-08 `ControlCollectionViewModel` candidate na zařízení (GPS) - terénní test.
+- Splnění i pro cíl (Finished) - zvážit oslavnou obrazovku po finiši.

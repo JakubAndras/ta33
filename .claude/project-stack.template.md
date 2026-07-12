@@ -5,11 +5,11 @@
 > instead of hardcoding any stack-specific detail.
 >
 > Copy this file to `.claude/project-stack.md` and fill in every `TODO`. Delete this template comment when done.
-> Keep section headings intact — the commands locate information by these headings.
+> Keep section headings intact - the commands locate information by these headings.
 
 ## 1. Project Overview
 
-- **Type**: TODO (e.g. Kotlin Multiplatform — shared business logic, native Android + iOS UI)
+- **Type**: TODO (e.g. Kotlin Multiplatform - shared business logic, native Android + iOS UI)
 - **Modules**: TODO (e.g. `shared` = common/KMP code, `androidApp` = Android app, `iosApp` = iOS app)
 - **Primary language(s)**: TODO (e.g. Kotlin, Swift)
 
@@ -17,11 +17,11 @@
 
 > Where source code lives, so commands know what paths to read and modify.
 
-- TODO (e.g. `shared/src/commonMain/kotlin/...` — shared logic)
-- TODO (e.g. `shared/src/androidMain/kotlin/...` — Android-specific)
-- TODO (e.g. `shared/src/iosMain/kotlin/...` — iOS-specific)
-- TODO (e.g. `androidApp/src/main/kotlin/...` — Android UI)
-- TODO (e.g. `iosApp/iosApp/...` — iOS UI)
+- TODO (e.g. `shared/src/commonMain/kotlin/...` - shared logic)
+- TODO (e.g. `shared/src/androidMain/kotlin/...` - Android-specific)
+- TODO (e.g. `shared/src/iosMain/kotlin/...` - iOS-specific)
+- TODO (e.g. `androidApp/src/main/kotlin/...` - Android UI)
+- TODO (e.g. `iosApp/iosApp/...` - iOS UI)
 
 ## 3. Build & Verification Commands
 

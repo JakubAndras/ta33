@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.dp
 import com.example.ta33.ui.theme.Ta33Theme
 
 /**
- * Primární orange pill CTA — full-width, min-height 56, button typo (UPPER),
+ * Primární orange pill CTA - full-width, min-height 56, button typo (UPPER),
  * jemný orange glow (aproximace `shadow-cta-glow`).
  */
 @Composable
@@ -47,7 +47,7 @@ fun PrimaryButton(
 }
 
 /**
- * Sekundární akce — orange 2px border, transparentní fill, orange text.
+ * Sekundární akce - orange 2px border, transparentní fill, orange text.
  */
 @Composable
 fun OutlineButton(

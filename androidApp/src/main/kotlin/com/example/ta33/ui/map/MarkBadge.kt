@@ -111,7 +111,7 @@ private fun kctBandColor(mark: TrailMark): Color = when (mark) {
     else -> Ta33Theme.colors.info
 }
 
-// KČT official trail-marking colours (no design token) + cyclo plate — structural literals.
+// KČT official trail-marking colours (no design token) + cyclo plate - structural literals.
 private val KctGreen = Color(0xFF2E9E4F)
 private val KctYellow = Color(0xFFF1C40F)
 private val CykloFill = Color(0xFFF1C40F)

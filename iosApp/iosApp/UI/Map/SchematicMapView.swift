@@ -1,7 +1,7 @@
 import SwiftUI
 import Shared
 
-/// Schematická mapa (`SchematicMap`): stylizovaná náhrada reálné mapy — gradient parchment→sage,
+/// Schematická mapa (`SchematicMap`): stylizovaná náhrada reálné mapy - gradient parchment→sage,
 /// jemné vrstevnice + les/voda blobs, výrazná smyčka trasy (bílý podklad + barva trasy, TA50 dashed),
 /// start/cíl marker a klikací piny kontrol (orotovaný kosočtverec s číslem). Piny se křížově
 /// zvýrazňují s itinerářem přes `highlightedControl`. Zrcadlí Android `SchematicMap`.
@@ -73,7 +73,7 @@ struct SchematicMapView: View {
     }
 }
 
-/// Pin kontroly — orotovaný kosočtverec (tři zaoblené rohy + ostrý spodní) s číslem.
+/// Pin kontroly - orotovaný kosočtverec (tři zaoblené rohy + ostrý spodní) s číslem.
 private struct ControlPinView: View {
     let number: Int32
     let active: Bool

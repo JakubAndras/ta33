@@ -1,4 +1,4 @@
-# iOS 26 Liquid Glass Tab Bar — Oddělené Scan Tlačítko přes `Tab(role: .search)`
+# iOS 26 Liquid Glass Tab Bar - Oddělené Scan Tlačítko přes `Tab(role: .search)`
 
 > **Summary**: Přepsat iOS shell tak, aby na iOS 26 vznikala oddělená scan „kapsle" nativním mechanismem `Tab(role: .search)` (namísto ručně pozicovaného overlay FABu), včetně `.tabBarMinimizeBehavior(.onScrollDown)`, s čistým fallbackem na overlay FAB pro iOS 18.
 
@@ -10,7 +10,7 @@
 iOS 26 zavedl plovoucí Liquid Glass tab bar, kde poslední prvek vpravo je vizuálně **oddělená kapsle** (jako search tlačítko v Health appce). V naší appce je scan vstup dnes udělaný jako ruční `.overlay(alignment: .bottomTrailing)` s natvrdo zadaným paddingem, který se jen *snaží trefit* vedle systémové lišty. To je křehké (různé velikosti zařízení, Dynamic Type, home indicator) a tlačítko se **neúčastní** nativního glass morphingu ani minimalizace lišty při scrollu.
 
 ### 1.2 Solution Overview
-Na iOS 26 přidáme scan jako `Tab(role: .search)` — systém ho sám vykreslí jako oddělenou glass kapsli ve správné pozici a zapojí do morph/minimalizace. Protože scan je **akce** (otevírá `fullScreenCover`), ne destinace, odchytíme jeho selection a hned ji vrátíme na předchozí tab; bez `.searchable` se neaktivuje search field. Přidáme `.tabBarMinimizeBehavior(.onScrollDown)`. Pro iOS 18 (kde search role nedává oddělenou kapsli) ponecháme dosavadní overlay FAB přes `#available`.
+Na iOS 26 přidáme scan jako `Tab(role: .search)` - systém ho sám vykreslí jako oddělenou glass kapsli ve správné pozici a zapojí do morph/minimalizace. Protože scan je **akce** (otevírá `fullScreenCover`), ne destinace, odchytíme jeho selection a hned ji vrátíme na předchozí tab; bez `.searchable` se neaktivuje search field. Přidáme `.tabBarMinimizeBehavior(.onScrollDown)`. Pro iOS 18 (kde search role nedává oddělenou kapsli) ponecháme dosavadní overlay FAB přes `#available`.
 
 ### 1.3 Scope: What This IS
 - Úprava `iosApp/iosApp/UI/Shell/RootView.swift` (struktura TabView + scan handling).
@@ -20,11 +20,11 @@ Na iOS 26 přidáme scan jako `Tab(role: .search)` — systém ho sám vykreslí
 - Aktualizace doc komentářů popisujících dnešní overlay-FAB pattern.
 
 ### 1.4 Scope: What This IS NOT
-- **Žádná změna sdíleného Kotlin kódu** — `TopLevelDestination { DENIK, MAPA, PREHLED }` zůstává beze změny.
+- **Žádná změna sdíleného Kotlin kódu** - `TopLevelDestination { DENIK, MAPA, PREHLED }` zůstává beze změny.
 - Žádná změna Androidu (Compose shell má vlastní nativní řešení).
 - Žádná změna scan flow logiky (`ScanFlowModel`, `ScanView`, `CollectionOfferView`, `SplneniView`).
 - Žádná změna chování `fullScreenCover` pro scan/splnění, `collectionOffer`, resetů při změně běhu, ani DEV `TA33_TAB`.
-- Nepřidáváme skutečné vyhledávání — search role používáme čistě pro *vizuál oddělené kapsle*.
+- Nepřidáváme skutečné vyhledávání - search role používáme čistě pro *vizuál oddělené kapsle*.
 
 ---
 
@@ -105,7 +105,7 @@ private enum TabSelection: Hashable {
 }
 ```
 
-**Done when**: Typ existuje a překládá se (`TopLevelDestination` je už dnes Hashable — používá se jako selection i `@State`).
+**Done when**: Typ existuje a překládá se (`TopLevelDestination` je už dnes Hashable - používá se jako selection i `@State`).
 
 ---
 
@@ -120,7 +120,7 @@ private enum TabSelection: Hashable {
 
 ---
 
-### Step 3: Přestavět `baseTabView` — destinace přes `.destination(...)` + podmíněný scan tab
+### Step 3: Přestavět `baseTabView` - destinace přes `.destination(...)` + podmíněný scan tab
 **Goal**: 3 content taby + (iOS 26 & aktivní běh) oddělený search-role scan tab.
 **Files**: `iosApp/iosApp/UI/Shell/RootView.swift`
 
@@ -163,7 +163,7 @@ private var baseTabView: some View {
 .onChange(of: selection) { oldValue, newValue in
     guard newValue == .scan else { return }
     showScan = true
-    selection = oldValue // oldValue je vždy .destination(...) — na .scan nikdy nezůstaneme
+    selection = oldValue // oldValue je vždy .destination(...) - na .scan nikdy nezůstaneme
 }
 ```
 
@@ -237,7 +237,7 @@ private var legacyScanFab: some View {
 
 ### Step 8: Build & vizuální ověření
 **Goal**: Kompilace + funkční chování na obou OS.
-**Files**: —
+**Files**: -
 
 - Build (viz §8). Vizuálně ověřit na iOS 26 i iOS 18 simulátoru scénáře z §2.
 
@@ -253,32 +253,32 @@ private var legacyScanFab: some View {
 | `activeRunId` se změní na `nil`, když je kapsle vybraná | Kapsle zmizí, selection zůstane na platné destinaci | Selection nikdy nesedí na `.scan` (vždy revert); zmizení tabu neovlivní aktivní destinaci |
 | Změna běhu (`activeRunId` se změní) během otevřeného scanu | `showScan` a `dismissedControlId` se resetují | Zachovat stávající `.onChange(of: model.app.activeRunId)` reset |
 | iOS 18 zařízení | Žádná search kapsle; overlay FAB; žádný `tabBarMinimizeBehavior` | `#available`/`#unavailable` větve |
-| Search-role tab by aktivoval search UI | Neaktivuje se — chybí `.searchable` | Scan tab obsah = `Color.clear`, žádný `.searchable` v hierarchii |
-| Revert `selection` způsobí vizuální blik výběru kapsle | Minimalizovat — revert je synchronní v témže onChange | `selection = oldValue` hned; obsah `Color.clear` je nenákladný. Pokud blik ruší → viz §12.2 |
+| Search-role tab by aktivoval search UI | Neaktivuje se - chybí `.searchable` | Scan tab obsah = `Color.clear`, žádný `.searchable` v hierarchii |
+| Revert `selection` způsobí vizuální blik výběru kapsle | Minimalizovat - revert je synchronní v témže onChange | `selection = oldValue` hned; obsah `Color.clear` je nenákladný. Pokud blik ruší → viz §12.2 |
 | `Mapa` tab bez scroll view | Lišta se u Mapy neminimalizuje | Očekávané (minimalizace váže na scroll); nevadí |
 
 ---
 
 ## 6. SECURITY CONSIDERATIONS
 
-> Bez reálných bezpečnostních dopadů — čistě UI/navigační změna iOS shellu.
+> Bez reálných bezpečnostních dopadů - čistě UI/navigační změna iOS shellu.
 
 - **Input validation**: N/A (žádný uživatelský vstup).
 - **Auth/Access control**: N/A.
-- **Sensitive data**: N/A — scan flow (kamera/QR) se nemění, jen vstupní bod do coveru.
+- **Sensitive data**: N/A - scan flow (kamera/QR) se nemění, jen vstupní bod do coveru.
 - **Logging**: Nepřidávat žádné logování selection/tapů.
 
 ---
 
 ## 7. ASSUMPTIONS
 
-Odvozeno ze zadání a kódu — ověřit:
+Odvozeno ze zadání a kódu - ověřit:
 
-1. **`TopLevelDestination` je Hashable ve Swiftu** — dnes se používá jako `@State` i `Tab(value:)`, což Hashable vyžaduje a kompiluje se; wrapper `TabSelection` tedy může derivovat Hashable. Pokud ne, doplnit `Hashable` ručně.
-2. **`Tab(role: .search)` dovolí custom `systemImage`** (`qrcode.viewfinder`) místo defaultní lupy — signatura `Tab(_:systemImage:value:role:content:)` to umožňuje. Pokud SDK ikonu přebije, řešit dle §12.2.
-3. **Uživatel opustil clarifikaci volbou v předchozím kroku** — mechanismus (search-role vs overlay) byl rozhodnut přes `AskUserQuestion` = „Nativní search-role tab". Další scope otázky nevznikly (jasné zadání) → `AskUserQuestion` v této fázi nevoláno.
-4. **iOS 18 fallback ponechat** — `role: .search` na iOS 18 nedává oddělenou kapsli, proto overlay FAB. Předpoklad opřen o to, že Liquid Glass separace je iOS 26 feature.
-5. **Deployment target 18.2** — availability guardy `iOS 26.0` jsou nutné; `#Preview` běží na aktuálním SDK.
+1. **`TopLevelDestination` je Hashable ve Swiftu** - dnes se používá jako `@State` i `Tab(value:)`, což Hashable vyžaduje a kompiluje se; wrapper `TabSelection` tedy může derivovat Hashable. Pokud ne, doplnit `Hashable` ručně.
+2. **`Tab(role: .search)` dovolí custom `systemImage`** (`qrcode.viewfinder`) místo defaultní lupy - signatura `Tab(_:systemImage:value:role:content:)` to umožňuje. Pokud SDK ikonu přebije, řešit dle §12.2.
+3. **Uživatel opustil clarifikaci volbou v předchozím kroku** - mechanismus (search-role vs overlay) byl rozhodnut přes `AskUserQuestion` = „Nativní search-role tab". Další scope otázky nevznikly (jasné zadání) → `AskUserQuestion` v této fázi nevoláno.
+4. **iOS 18 fallback ponechat** - `role: .search` na iOS 18 nedává oddělenou kapsli, proto overlay FAB. Předpoklad opřen o to, že Liquid Glass separace je iOS 26 feature.
+5. **Deployment target 18.2** - availability guardy `iOS 26.0` jsou nutné; `#Preview` běží na aktuálním SDK.
 
 > Otevřené otázky viz Sekce 12.
 
@@ -287,8 +287,8 @@ Odvozeno ze zadání a kódu — ověřit:
 ## 8. QUICK REFERENCE
 
 ### Files to Modify
-- `iosApp/iosApp/UI/Shell/RootView.swift` — `TabSelection` typ, `selection` state, `baseTabView` se scan tabem, `onChange` scan handling, minimize helper, overlay FAB jen iOS 18, doc komentáře.
-- `iosApp/iosApp/UI/Shell/ScanButton.swift` — doc komentář (iOS 18-only role); volitelně zjednodušit `ScanButtonSurface`.
+- `iosApp/iosApp/UI/Shell/RootView.swift` - `TabSelection` typ, `selection` state, `baseTabView` se scan tabem, `onChange` scan handling, minimize helper, overlay FAB jen iOS 18, doc komentáře.
+- `iosApp/iosApp/UI/Shell/ScanButton.swift` - doc komentář (iOS 18-only role); volitelně zjednodušit `ScanButtonSurface`.
 
 ### Files to Create
 - žádné.
@@ -298,7 +298,7 @@ Odvozeno ze zadání a kódu — ověřit:
 
 ### Commands
 ```bash
-# Build (headless, bez podpisu) — nahraď <simulator-id> reálným ID (xcrun simctl list devices)
+# Build (headless, bez podpisu) - nahraď <simulator-id> reálným ID (xcrun simctl list devices)
 xcodebuild -project iosApp/iosApp.xcodeproj -scheme iosApp -configuration Debug \
   -destination 'id=<simulator-id>' CODE_SIGNING_ALLOWED=NO build
 
@@ -311,7 +311,7 @@ xcodebuild -project iosApp/iosApp.xcodeproj -scheme iosApp -configuration Debug 
 ## 9. DESIGN REFERENCE
 
 ### Visual Spec
-Referenční pattern: iOS 26 Liquid Glass tab bar (WWDC25). Poslední prvek vpravo je oddělená „kapsle" — kanonický příklad je search tlačítko v Health/Maps. Zdroj vzhledu = **systém** (native Liquid Glass), ne vlastní mockup. V souladu s memory „Native look per platform" — neklonovat unifikovaný mockup, vzhled patří platformě.
+Referenční pattern: iOS 26 Liquid Glass tab bar (WWDC25). Poslední prvek vpravo je oddělená „kapsle" - kanonický příklad je search tlačítko v Health/Maps. Zdroj vzhledu = **systém** (native Liquid Glass), ne vlastní mockup. V souladu s memory „Native look per platform" - neklonovat unifikovaný mockup, vzhled patří platformě.
 
 ### Component/Screen Mapping
 - Oddělená glass kapsle → `Tab("Skenovat", systemImage: "qrcode.viewfinder", value: .scan, role: .search)` v `RootView.baseTabView`.
@@ -324,7 +324,7 @@ Referenční pattern: iOS 26 Liquid Glass tab bar (WWDC25). Poslední prvek vpra
 |-------------|-----------------|-------|
 | Akcentní barva (tint symbolů/kapsle) | `.tint(Ta33Color.orange)` na TabView | brand orange (token) |
 | Scan ikona | `systemImage: "qrcode.viewfinder"` | SF Symbol |
-| iOS 26 povrch scan kapsle | systémový Liquid Glass (search role) | native — nehardcodovat |
+| iOS 26 povrch scan kapsle | systémový Liquid Glass (search role) | native - nehardcodovat |
 | iOS 18 FAB povrch | `ScanButtonSurface` (solid orange + glow) | `Ta33Color.orange`, shadow `x4/x2` |
 | iOS 18 FAB odsazení | `.padding(.trailing, Ta33Spacing.x5)` `.padding(.bottom, Ta33Spacing.x4)` | 20 / 16 pt |
 | Rozměr FAB (iOS 18) | `frame(width/height: Ta33Spacing.x9)` | 56 pt |
@@ -335,7 +335,7 @@ Referenční pattern: iOS 26 Liquid Glass tab bar (WWDC25). Poslední prvek vpra
 
 | What | Before (Wrong/Current) | After (Correct/Target) |
 |------|------------------------|------------------------|
-| Scan vstup iOS 26 | Ruční `.overlay(.bottomTrailing)` FAB s hardcoded paddingem, mimo nativní lištu | Nativní `Tab(role: .search)` — systémová oddělená glass kapsle v řádku lišty |
+| Scan vstup iOS 26 | Ruční `.overlay(.bottomTrailing)` FAB s hardcoded paddingem, mimo nativní lištu | Nativní `Tab(role: .search)` - systémová oddělená glass kapsle v řádku lišty |
 | Selection typ | `@State var tab: TopLevelDestination` | `@State var selection: TabSelection` (destinace + scan sentinel) |
 | Minimalizace lišty | Chybí | `.tabBarMinimizeBehavior(.onScrollDown)` (iOS 26+) |
 | Overlay FAB rozsah | Renderuje se na iOS 26 i 18 (s `scanFabBottomPadding` větví) | Jen iOS 18 (`#unavailable(iOS 26)`), bez padding větve |
@@ -359,22 +359,22 @@ Referenční pattern: iOS 26 Liquid Glass tab bar (WWDC25). Poslední prvek vpra
 | Approach | Pros | Cons | Selected? |
 |----------|------|------|-----------|
 | **A. `Tab(role: .search)` + revert (akce)** | Nativní oddělená glass kapsle, zdarma morph/minimalizace, správná pozice napříč zařízeními | Sémantický hijack search role; nutný revert selection; riziko blику/edge-case chování search UI | ✅ |
-| **B. Robustní overlay FAB** | Plná kontrola nad akcí (žádný search mód), jednoduché | Tlačítko není „součástí" nativní lišty, křehké zarovnání, neúčastní se native morph/minimalizace | — |
-| **C. `.tabViewBottomAccessory`** | Nativní, morphuje s lištou při minimalizaci | Sedí **nad** lištou (ne vedle), je vidět na všech tabech, sémanticky pro status/now-playing — ne oddělené trailing tlačítko | — |
+| **B. Robustní overlay FAB** | Plná kontrola nad akcí (žádný search mód), jednoduché | Tlačítko není „součástí" nativní lišty, křehké zarovnání, neúčastní se native morph/minimalizace | - |
+| **C. `.tabViewBottomAccessory`** | Nativní, morphuje s lištou při minimalizaci | Sedí **nad** lištou (ne vedle), je vidět na všech tabech, sémanticky pro status/now-playing - ne oddělené trailing tlačítko | - |
 
-**Why the selected approach won**: Uživatel explicitně chce nativní iOS 26 pattern „oddělené kapsle vpravo" a `Tab(role: .search)` je jediný nativní mechanismus, který ho produkuje (potvrzeno rešerší — Health-style search tlačítko). Přijímáme cenu (revert + hlídání search UI) výměnou za nativní vzhled a chování.
+**Why the selected approach won**: Uživatel explicitně chce nativní iOS 26 pattern „oddělené kapsle vpravo" a `Tab(role: .search)` je jediný nativní mechanismus, který ho produkuje (potvrzeno rešerší - Health-style search tlačítko). Přijímáme cenu (revert + hlídání search UI) výměnou za nativní vzhled a chování.
 
 ### 12.2 Open Questions
 
-- [ ] **Přebíjí `role: .search` naši `systemImage` (`qrcode.viewfinder`) defaultní lupou?** — Proposed direction: signatura `Tab(_:systemImage:value:role:content:)` custom ikonu umožňuje; ověřit na simulátoru. Pokud přebije, zvážit `label` bez systému nebo přijmout, že kapsle je čistě akční s vlastním glyphem přes `Tab { } label:`.
-- [ ] **Blikne výběr kapsle při synchronním revertu `selection`?** — Proposed direction: nejdřív ověřit vizuálně; pokud ruší, zkusit revert v `Task { @MainActor in selection = oldValue }` nebo `withTransaction` bez animace (`var t = Transaction(); t.disablesAnimations = true`).
-- [ ] **Aktivuje search-role tap přesto search prezentaci, i bez `.searchable`?** — Proposed direction: bez `.searchable` by neměl; pokud ano, přidat `.searchable` skrytě a okamžitě dismiss NENÍ žádoucí — místo toho padnout na Alternative B (overlay FAB) i pro iOS 26. Rozhodovací bod při testu.
-- [ ] **Interaguje `.tabBarMinimizeBehavior` s viditelností search kapsle korektně?** — Proposed direction: ověřit, že se kapsle minimalizuje spolu s lištou a po scrollu nahoru se vrátí.
+- [ ] **Přebíjí `role: .search` naši `systemImage` (`qrcode.viewfinder`) defaultní lupou?** - Proposed direction: signatura `Tab(_:systemImage:value:role:content:)` custom ikonu umožňuje; ověřit na simulátoru. Pokud přebije, zvážit `label` bez systému nebo přijmout, že kapsle je čistě akční s vlastním glyphem přes `Tab { } label:`.
+- [ ] **Blikne výběr kapsle při synchronním revertu `selection`?** - Proposed direction: nejdřív ověřit vizuálně; pokud ruší, zkusit revert v `Task { @MainActor in selection = oldValue }` nebo `withTransaction` bez animace (`var t = Transaction(); t.disablesAnimations = true`).
+- [ ] **Aktivuje search-role tap přesto search prezentaci, i bez `.searchable`?** - Proposed direction: bez `.searchable` by neměl; pokud ano, přidat `.searchable` skrytě a okamžitě dismiss NENÍ žádoucí - místo toho padnout na Alternative B (overlay FAB) i pro iOS 26. Rozhodovací bod při testu.
+- [ ] **Interaguje `.tabBarMinimizeBehavior` s viditelností search kapsle korektně?** - Proposed direction: ověřit, že se kapsle minimalizuje spolu s lištou a po scrollu nahoru se vrátí.
 
 ### 12.3 Suggestions & Follow-ups
 
-- Zvážit zjednodušení `ScanButtonSurface` na iOS 18-only (odstranit `glassEffect` větev, kterou už shell na iOS 26 nevyužívá) — ale ponechat, pokud ji používá `#Preview` nebo jiná místa; ověřit grepem před smazáním.
+- Zvážit zjednodušení `ScanButtonSurface` na iOS 18-only (odstranit `glassEffect` větev, kterou už shell na iOS 26 nevyužívá) - ale ponechat, pokud ji používá `#Preview` nebo jiná místa; ověřit grepem před smazáním.
 - Po ověření chování zvážit `.tabBarMinimizeBehavior(.automatic)` místo `.onScrollDown`, pokud automatika lépe ladí s Mapou (bez scrollu).
 - Až budou doplněny reálné fonty (Big Shoulders/Inter), znovu ověřit vertikální zarovnání kapsle vs. label baseline.
 - Zvážit haptiku (`.sensoryFeedback`) při otevření scanu z kapsle pro parity s FABem.
-- Sdílený `TopLevelDestination` má case `PREHLED`, ale UI ho zobrazuje jako „Profil" — mimo rozsah, ale hodné budoucího sjednocení názvosloví.
+- Sdílený `TopLevelDestination` má case `PREHLED`, ale UI ho zobrazuje jako „Profil" - mimo rozsah, ale hodné budoucího sjednocení názvosloví.

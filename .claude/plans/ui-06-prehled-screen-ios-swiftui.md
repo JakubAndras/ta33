@@ -1,6 +1,6 @@
-# UI-06 — Přehled / Profil (iOS SwiftUI)
+# UI-06 - Přehled / Profil (iOS SwiftUI)
 
-> **Summary**: iOS SwiftUI obrazovka tabu „Přehled" nad FR-10 ViewModely (přes SKIE) — sekce „Tvoje akce" + „Nastavení" v nativním `List`/`Form` (Toggle, DisclosureGroup). Zrcadlo Androidu (ui-05), iOS-nativní.
+> **Summary**: iOS SwiftUI obrazovka tabu „Přehled" nad FR-10 ViewModely (přes SKIE) - sekce „Tvoje akce" + „Nastavení" v nativním `List`/`Form` (Toggle, DisclosureGroup). Zrcadlo Androidu (ui-05), iOS-nativní.
 
 ---
 
@@ -20,8 +20,8 @@ Tab „Přehled" v iOS shellu (ui-04) je `StubView`. FR-10 logika je hotová. Po
 
 ### 1.4 Scope: What This IS NOT
 - **Android** (ui-05, hotovo).
-- **Etapa 2** prvky: avatar/jméno/e-mail, startovní číslo, „Zaplaceno", odbavovací QR, „Hlasové pokyny" — v Etapě 1 nejsou.
-- Intent akce kontaktu (mail/tel) — zobrazit; akce follow-up.
+- **Etapa 2** prvky: avatar/jméno/e-mail, startovní číslo, „Zaplaceno", odbavovací QR, „Hlasové pokyny" - v Etapě 1 nejsou.
+- Intent akce kontaktu (mail/tel) - zobrazit; akce follow-up.
 
 ---
 
@@ -36,8 +36,8 @@ Tab „Přehled" v iOS shellu (ui-04) je `StubView`. FR-10 logika je hotová. Po
 | 6 | Nativní `Toggle` Notifikace odráží stav a volá `setNotificationsEnabled` | Preview |
 | 7 | Kontakt na pořadatele zobrazen; FAQ přes `DisclosureGroup` (nativní rozbalení) | Preview |
 | 8 | `loading` (dokud nejsou hotové OBĚ VM, tj. `overview.loading \|\| settings.loading`) → `ProgressView` | Preview |
-| 9 | Žádný hardcoded hex/CGFloat — vše přes `Ta33Color/Font/Spacing/Radius` | code review |
-| 10 | Runtime na simulátoru — DEFERRED na Mac | manuální |
+| 9 | Žádný hardcoded hex/CGFloat - vše přes `Ta33Color/Font/Spacing/Radius` | code review |
+| 10 | Runtime na simulátoru - DEFERRED na Mac | manuální |
 
 ---
 
@@ -91,9 +91,9 @@ Ověřit SKIE accessory `overviewViewModel()`/`settingsViewModel()` (v `Koin.kt`
 
 ### Step 2: Pomocné formátování
 **Files**: `iosApp/iosApp/UI/Prehled/PrehledFormat.swift` (create)
-- `kmLabel(Double) -> String` — česká čárka (`33,2`).
-- `packageStatusLabel(PreparationStatus) -> String` — Nestaženo/Stahuje se/Staženo/Chyba.
-- `packageStatusColor(PreparationStatus) -> Color` — success/warning/error.
+- `kmLabel(Double) -> String` - česká čárka (`33,2`).
+- `packageStatusLabel(PreparationStatus) -> String` - Nestaženo/Stahuje se/Staženo/Chyba.
+- `packageStatusColor(PreparationStatus) -> Color` - success/warning/error.
 `PreparationStatus` je Kotlin enum přes SKIE (ověřit casing `.notStarted/.preparing/.ready/.error`).
 **Done when**: kompiluje.
 
@@ -167,7 +167,7 @@ Ověřit typy přes SKIE (`FaqItem.id`, `RouteSummary.distanceKm` jako `Double`/
 
 ## 7. ASSUMPTIONS
 1. **SKIE**: `ViewModelProvider.shared.overviewViewModel()`/`settingsViewModel()`, `setNotificationsEnabled(enabled:)`, `OverviewUiState`/`SettingsUiState` bez no-arg init (explicitní init dle ui-02/04). Ověřit na buildu.
-2. **VM startují v `init`** (bez bind) — jen pozorovat.
+2. **VM startují v `init`** (bez bind) - jen pozorovat.
 3. **Etapa 2 prvky vynechány** (avatar/číslo/QR/platba/hlasové pokyny).
 4. **„Data akce" = `syncStatus`** (offline balíček), ne upload výsledků.
 5. **Simulátor nenaboot** → runtime na Mac; v sandboxu framework link + xcodebuild.
@@ -176,7 +176,7 @@ Ověřit typy přes SKIE (`FaqItem.id`, `RouteSummary.distanceKm` jako `Double`/
 ### Files to Create
 - `iosApp/iosApp/UI/Prehled/{PrehledModel,PrehledFormat,PrehledView}.swift`
 ### Files to Modify
-- `iosApp/iosApp/UI/Shell/RootView.swift` — tab .prehled → `PrehledView`
+- `iosApp/iosApp/UI/Shell/RootView.swift` - tab .prehled → `PrehledView`
 ### Commands
 ```bash
 ./gradlew :shared:linkDebugFrameworkIosSimulatorArm64
@@ -214,11 +214,11 @@ xcodebuild -project iosApp/iosApp.xcodeproj -scheme iosApp -configuration Debug 
 | Approach | Pros | Cons | Selected? |
 |---|---|---|---|
 | **A. Nativní List/Form + Toggle/DisclosureGroup** | iOS-nativní settings pocit, minimum kódu | Vizuálně jiné než Compose karty (žádoucí) | ✅ |
-| B. Klon Compose PaperCard karet | Shoda s Androidem | Porušuje princip nativního vzhledu | — |
-| C. Custom scroll + vlastní řádky | Kontrola vzhledu | Ztráta nativního chování Toggle/Disclosure | — |
+| B. Klon Compose PaperCard karet | Shoda s Androidem | Porušuje princip nativního vzhledu | - |
+| C. Custom scroll + vlastní řádky | Kontrola vzhledu | Ztráta nativního chování Toggle/Disclosure | - |
 ### 12.2 Open Questions
-- [ ] **SKIE typy/casing** (`KotlinDouble`, enum casing, `setNotificationsEnabled(enabled:)`) — Proposed: ověřit na buildu, adaptovat.
-- [ ] **Kontakt akce** — Proposed: zobrazit; `Link`/`mailto:` follow-up.
+- [ ] **SKIE typy/casing** (`KotlinDouble`, enum casing, `setNotificationsEnabled(enabled:)`) - Proposed: ověřit na buildu, adaptovat.
+- [ ] **Kontakt akce** - Proposed: zobrazit; `Link`/`mailto:` follow-up.
 ### 12.3 Suggestions & Follow-ups
 - Etapa 2: identity/startovní číslo/odbavovací QR/platba, hlasové pokyny.
 - `Link`/`mailto:`/`tel:` akce pro kontakt.

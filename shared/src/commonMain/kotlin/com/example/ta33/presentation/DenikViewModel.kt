@@ -90,7 +90,7 @@ class DenikViewModel(
         val collectedIds = collected.mapTo(HashSet()) { it.controlId }
         val started = run?.startedAtMillis != null
 
-        // First uncollected control (by ordinal) is the "next" node — only once the run has started
+        // First uncollected control (by ordinal) is the "next" node - only once the run has started
         // (consistent with the START stop, which is DONE only when started).
         val nextControlOrdinal = if (started) {
             itinerary.waypoints

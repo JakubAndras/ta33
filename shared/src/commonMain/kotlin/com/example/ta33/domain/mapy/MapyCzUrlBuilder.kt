@@ -6,7 +6,7 @@ import com.example.ta33.domain.model.GeoPoint
 /**
  * Builds a universal mapy.cz route link: https://mapy.com/fnc/v1/route
  * Opens the mapy.cz app if installed, otherwise the browser (handled by the OS).
- * Pure & deterministic — unit-tested in commonTest.
+ * Pure & deterministic - unit-tested in commonTest.
  */
 class MapyCzUrlBuilder {
 
