@@ -9,7 +9,7 @@ import com.example.ta33.domain.repository.RouteCatalogRepository
 import com.example.ta33.domain.repository.RouteRepository
 
 /**
- * DEV / TESTING ONLY — seeds the local DB from the static [RouteCatalog] (TA33): upserts the [Route]
+ * DEV / TESTING ONLY - seeds the local DB from the static [RouteCatalog] (TA33): upserts the [Route]
  * + its [ControlPoint]s (from CONTROL waypoints with approximate GPS) and marks the offline package
  * READY. Idempotent (INSERT OR REPLACE). Shared by [DevSeed] (startup seed) and the Profil Sandbox
  * panel „Data akce / mapa stažena → ON" (UI-12). Returns the seeded controls so callers can chain.

@@ -1,12 +1,12 @@
 import SwiftUI
 import Shared
 
-/// Tab „Profil" (RD-03) — nativní iOS vzhled: `List(.insetGrouped)`.
+/// Tab „Profil" (RD-03) - nativní iOS vzhled: `List(.insetGrouped)`.
 /// Identita (avatar + jméno + e-mail, mock), karta startovního čísla (slate + stav platby),
 /// pak podle běhu buď odbavovací QR (před akcí) nebo blok „Tvoje akce" (na trase),
 /// a „Nastavení" (nativní `Toggle`, kontakt, FAQ v `DisclosureGroup`).
 /// Identita/číslo/platba/QR jsou Etapa-2 mock; „Tvoje akce" + nastavení z FR-10 VM.
-/// Záměrně nativní iOS chrome — ne klon Android karet.
+/// Záměrně nativní iOS chrome - ne klon Android karet.
 struct ProfilView: View {
     @StateObject private var model = ProfilModel()
     @State private var voiceGuidanceEnabled = false
@@ -59,7 +59,7 @@ struct ProfilView: View {
         .listStyle(.insetGrouped)
         // Horní okraj na rytmus design systému (~space-5 = 20pt). Nativní inset-grouped List má
         // vlastní horní scroll inset (~36pt) navíc k paddingu řádku/sekce; contentMargins ho
-        // nahrazuje nulou, takže zůstane jen ~18pt vnitřního paddingu = cílové pásmo návrhu (16–20).
+        // nahrazuje nulou, takže zůstane jen ~18pt vnitřního paddingu = cílové pásmo návrhu (16-20).
         .contentMargins(.top, 0, for: .scrollContent)
         .listSectionSpacing(Ta33Spacing.x5)
         .scrollContentBackground(.hidden)
@@ -203,7 +203,7 @@ struct ProfilView: View {
     }
 
     #if DEBUG
-    // MARK: - Sandbox (DEV, jen DEBUG) — přepínače reálného stavu appky (UI-12)
+    // MARK: - Sandbox (DEV, jen DEBUG) - přepínače reálného stavu appky (UI-12)
 
     private var sandboxSection: some View {
         Section {

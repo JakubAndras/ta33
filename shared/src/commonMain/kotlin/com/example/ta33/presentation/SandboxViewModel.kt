@@ -20,12 +20,12 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 /**
- * DEV / TESTING ONLY (UI-12) — backs the Profil „Sandbox" panel. Derives the state of the four
+ * DEV / TESTING ONLY (UI-12) - backs the Profil „Sandbox" panel. Derives the state of the four
  * toggles from the real app flows and exposes actions that drive the REAL app state via repositories
  * (so flipping a toggle changes actual behaviour: readiness gate, scan capsule, Deník, Profil).
  *
  * Run lifecycle note: `selectActiveRun` = finishedAtMillis IS NULL, so a finished run is not
- * "active" — finishing therefore flips [SandboxUiState.naTrase] to false. That is faithful to the
+ * "active" - finishing therefore flips [SandboxUiState.naTrase] to false. That is faithful to the
  * real app state, not a bug. We read the latest run (regardless of finished) to reach a finished run.
  */
 class SandboxViewModel(

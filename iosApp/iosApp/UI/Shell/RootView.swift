@@ -11,7 +11,7 @@ private enum TabSelection: Hashable {
 
 /// Kořenová navigační skořápka iOS aplikace. Gate na `AppUiState.readiness`:
 /// LOADING → splash, NOT_READY/PREPARING → příprava, READY → obsah s tab barem.
-/// Tab bar je **nativní** `TabView` — na iOS 26 ho systém vykreslí jako Liquid Glass
+/// Tab bar je **nativní** `TabView` - na iOS 26 ho systém vykreslí jako Liquid Glass
 /// (morphing, interaktivní sklo, scroll-edge efekt zdarma, `.tabBarMinimizeBehavior` při scrollu),
 /// na iOS 18 jako klasickou lištu. Sdílíme jen navigační model (`TopLevelDestination`), vzhled
 /// patří platformě. Scan vstup (FR-09) je při aktivním běhu na iOS 26 oddělená Liquid Glass kapsle
@@ -59,7 +59,7 @@ struct RootView: View {
             .onChange(of: selection) { oldValue, newValue in
                 guard newValue == .scan else { return }
                 showScan = true
-                selection = oldValue // oldValue je vždy .destination(...) — na .scan nikdy nezůstaneme
+                selection = oldValue // oldValue je vždy .destination(...) - na .scan nikdy nezůstaneme
             }
             .fullScreenCover(isPresented: $showScan) { scanCover }
             .fullScreenCover(isPresented: splneniBinding) { splneniCover }
@@ -76,20 +76,20 @@ struct RootView: View {
             .safeAreaInset(edge: .bottom) { collectionOffer }
     }
 
-    /// iOS 18 fallback: plovoucí scan FAB vedle klasické lišty — jen při aktivním běhu.
+    /// iOS 18 fallback: plovoucí scan FAB vedle klasické lišty - jen při aktivním běhu.
     /// Na iOS 26 řeší scan oddělená search-role kapsle v `baseTabView`, tady se nevykreslí.
     @ViewBuilder
     private var legacyScanFab: some View {
         if #unavailable(iOS 26.0), model.app.activeRunId != nil {
             ScanButton(action: { showScan = true })
-                .padding(.trailing, Ta33Spacing.x5) // ~21pt, FabBar horizontalPadding — okraj sladěný s lištou
+                .padding(.trailing, Ta33Spacing.x5) // ~21pt, FabBar horizontalPadding - okraj sladěný s lištou
                 .padding(.bottom, Ta33Spacing.x4)
         }
     }
 
     /// Vlastní obsah tabů. `TabView` si tři views drží naživu sám (scroll/stav se zachová
-    /// mezi taby) — žádný ruční `ZStack`/opacity juggling. Na iOS 26 přibývá při aktivním běhu
-    /// scan jako `Tab(role: .search)` — systém ho vykreslí jako oddělenou Liquid Glass kapsli
+    /// mezi taby) - žádný ruční `ZStack`/opacity juggling. Na iOS 26 přibývá při aktivním běhu
+    /// scan jako `Tab(role: .search)` - systém ho vykreslí jako oddělenou Liquid Glass kapsli
     /// vpravo. Scan je akce (ne obrazovka): bez `.searchable` neaktivuje search field a jeho
     /// selection se hned vrací zpět (viz `.onChange(of: selection)` v `readyContent`).
     private var baseTabView: some View {

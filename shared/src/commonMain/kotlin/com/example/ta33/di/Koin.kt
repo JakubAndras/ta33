@@ -41,7 +41,7 @@ fun doInitKoin() {
 }
 
 /**
- * DEV / TESTING ONLY — seeds sample content so the app boots into the READY shell.
+ * DEV / TESTING ONLY - seeds sample content so the app boots into the READY shell.
  * No-op unless [DEV_SEED_ENABLED]. Called from the debug app entry points after Koin init.
  */
 fun seedDevDataIfEmpty() {

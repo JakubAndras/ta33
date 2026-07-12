@@ -74,7 +74,7 @@ import org.jetbrains.compose.resources.stringResource
  * karta startovního čísla (slate-800 + stav platby), pak podle běhu buď odbavovací QR
  * (před akcí, `!hasActiveRun`) nebo blok „Tvoje akce" (na trase, `hasActiveRun`),
  * a karta „Nastavení". Identita/číslo/platba/QR jsou Etapa-2 mock; „Tvoje akce" a nastavení
- * z FR-10 VM. Žádný ViewModel — jen stav a zapisovací callbacky.
+ * z FR-10 VM. Žádný ViewModel - jen stav a zapisovací callbacky.
  */
 @Composable
 fun ProfilContent(
@@ -232,7 +232,7 @@ private fun StartNumberCard(paid: Boolean) {
     }
 }
 
-/** Odbavovací QR (mock) — jen před akcí (`!hasActiveRun`). Placeholder vzor, není skenovatelný. */
+/** Odbavovací QR (mock) - jen před akcí (`!hasActiveRun`). Placeholder vzor, není skenovatelný. */
 @Composable
 private fun CheckInQrCard() {
     PaperCard {
@@ -262,7 +262,7 @@ private fun CheckInQrCard() {
     }
 }
 
-/** Blok „Tvoje akce" — jen na trase (`hasActiveRun`). Data z FR-10 [OverviewUiState]. */
+/** Blok „Tvoje akce" - jen na trase (`hasActiveRun`). Data z FR-10 [OverviewUiState]. */
 @Composable
 private fun EventCard(overview: OverviewUiState) {
     PaperCard {
@@ -336,7 +336,7 @@ private fun SettingsCard(
     }
 }
 
-/** DEV / TESTING ONLY (UI-12) — přepínače reálného stavu appky. Gate `BuildConfig.DEBUG` v callerovi. */
+/** DEV / TESTING ONLY (UI-12) - přepínače reálného stavu appky. Gate `BuildConfig.DEBUG` v callerovi. */
 @Composable
 private fun SandboxCard(
     sandbox: SandboxUiState,

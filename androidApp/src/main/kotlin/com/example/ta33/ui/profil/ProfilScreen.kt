@@ -21,7 +21,7 @@ import org.koin.compose.viewmodel.koinViewModel
 /**
  * Stateful wrapper tabu „Profil": odebírá [OverviewViewModel] a [SettingsViewModel]
  * (oba startují samy v `init`) a předává jejich stav do stateless [ProfilContent].
- * „Hlasové pokyny" jsou lokální UI stav (mock, bez logiky — Etapa 2).
+ * „Hlasové pokyny" jsou lokální UI stav (mock, bez logiky - Etapa 2).
  * V DEBUG buildu navíc odebírá [SandboxViewModel] pro dev přepínače stavů (UI-12).
  */
 @Composable
@@ -38,7 +38,7 @@ fun ProfilScreen(
             .background(MaterialTheme.colorScheme.background)
             .safeDrawingPadding(),
     ) {
-        // DEV Sandbox VM je čistě DEBUG — v release ho ani neresolvujeme/nesubscribujeme (UI-12).
+        // DEV Sandbox VM je čistě DEBUG - v release ho ani neresolvujeme/nesubscribujeme (UI-12).
         if (BuildConfig.DEBUG) {
             val sandboxVm: SandboxViewModel = koinViewModel()
             val sandbox by sandboxVm.state.collectAsStateWithLifecycle()

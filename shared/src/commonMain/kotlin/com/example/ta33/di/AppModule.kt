@@ -148,7 +148,7 @@ val appModule = module {
     // viewmodel
     factory { RunLogViewModel(get()) }
     factory { DenikViewModel(get(), get(), get()) }                               // RD-01 (observeApp, RunRepo, RouteCatalog)
-    factory { MapaViewModel(get(), get()) }                                       // RD-02 (observeApp, RouteCatalog) — schematic map
+    factory { MapaViewModel(get(), get()) }                                       // RD-02 (observeApp, RouteCatalog) - schematic map
     factory { RouteListViewModel(get(), get(), get()) }
     factory { RouteDetailViewModel(get(), get(), get()) }
     factory { DownloadViewModel(get(), get(), get()) }

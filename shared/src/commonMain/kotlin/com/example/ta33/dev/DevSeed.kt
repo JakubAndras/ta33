@@ -10,11 +10,11 @@ import com.example.ta33.domain.usecase.EnsureLocalParticipantUseCase
 import kotlinx.coroutines.flow.first
 
 /**
- * DEV / TESTING ONLY — NOT for production.
+ * DEV / TESTING ONLY - NOT for production.
  *
  * Seeds the local DB (via [DevContentSeeder]: TA33 route+controls from the static [RouteCatalog],
  * marks the offline package READY) and additionally creates a *started* run with the first two
- * controls collected — so the app boots straight into the READY shell, on-route, with real content
+ * controls collected - so the app boots straight into the READY shell, on-route, with real content
  * for on-device UI testing.
  *
  * Idempotent: no-op if any route already exists. Gated by [DEV_SEED_ENABLED] and only invoked from

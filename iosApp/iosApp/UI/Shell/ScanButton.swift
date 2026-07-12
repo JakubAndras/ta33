@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Scan vstupní bod (FR-09) — prominentní kruhové tlačítko zobrazené jen při aktivním běhu.
+/// Scan vstupní bod (FR-09) - prominentní kruhové tlačítko zobrazené jen při aktivním běhu.
 /// **Používá se jen jako iOS 18 fallback FAB** (`RootView.legacyScanFab`): solid oranžový kruh
 /// vedle klasické lišty s teplým glow. Na iOS 26 scan renderuje systémová oddělená search-role
 /// kapsle (viz `RootView.baseTabView`), ne tento view. Ikona `qrcode.viewfinder`.

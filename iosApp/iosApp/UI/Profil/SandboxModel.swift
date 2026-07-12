@@ -1,7 +1,7 @@
 import Foundation
 import Shared
 
-/// DEV / TESTING ONLY (UI-12) — pozoruje sdílený `SandboxViewModel` (SKIE `AsyncSequence`) a vystavuje
+/// DEV / TESTING ONLY (UI-12) - pozoruje sdílený `SandboxViewModel` (SKIE `AsyncSequence`) a vystavuje
 /// stav 4 přepínačů Sandbox panelu SwiftUI. Akce delegují na VM, který mění REÁLNÝ stav appky
 /// (readiness gate, scan kapsle, Deník, Profil). Používá se jen v DEBUG (viz `#if DEBUG` v `ProfilView`).
 @MainActor
