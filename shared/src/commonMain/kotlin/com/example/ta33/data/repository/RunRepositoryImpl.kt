@@ -20,6 +20,7 @@ class RunRepositoryImpl(
 ) : RunRepository {
     private val q get() = db.runSessionQueries
     private val cq get() = db.collectedControlQueries
+    private val tq get() = db.trackpointQueries
 
     override suspend fun createRun(routeId: String, participantId: String): RunSession =
         withContext(Dispatchers.Default) {
@@ -46,6 +47,15 @@ class RunRepositoryImpl(
             q.selectActiveRun().executeAsOneOrNull()?.toDomain()
         }
 
+    override fun observeLatestRun(): Flow<RunSession?> =
+        q.selectLatestRun().asFlow().mapToOneOrNull(Dispatchers.Default)
+            .map { it?.toDomain() }
+
+    override suspend fun getLatestRun(): RunSession? =
+        withContext(Dispatchers.Default) {
+            q.selectLatestRun().executeAsOneOrNull()?.toDomain()
+        }
+
     override suspend fun setStarted(runId: String, startedAtMillis: Long) {
         withContext(Dispatchers.Default) {
             q.setStarted(startedAtMillis, runId)
@@ -55,6 +65,22 @@ class RunRepositoryImpl(
     override suspend fun setFinished(runId: String, finishedAtMillis: Long) {
         withContext(Dispatchers.Default) {
             q.setFinished(finishedAtMillis, runId)
+        }
+    }
+
+    override suspend fun clearFinished(runId: String) {
+        withContext(Dispatchers.Default) {
+            q.clearFinished(runId)
+        }
+    }
+
+    override suspend fun clearAllRuns() {
+        withContext(Dispatchers.Default) {
+            db.transaction {
+                cq.deleteAllCollected()
+                tq.deleteAllTrackpoints()
+                q.deleteAllRuns()
+            }
         }
     }
 

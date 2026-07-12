@@ -25,3 +25,6 @@ VALUES (?, ?, ?, ?, ?, ?, ?);
 
 deleteForRun:
 DELETE FROM Trackpoint WHERE runSessionId = ?;
+
+deleteAllTrackpoints:
+DELETE FROM Trackpoint;

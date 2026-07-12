@@ -1,24 +1,22 @@
 import SwiftUI
 import Shared
 
-/// Deník — gate stavů řízený `AppUiState.readiness`. Pozoruje sdílené ViewModely přes `DenikModel`.
+/// Deník (RD-01) — kanonický `VariantPrehled`. Pozoruje sdílený `DenikViewModel` přes `DenikModel`.
 struct DenikView: View {
     @StateObject private var model = DenikModel()
 
     var body: some View {
-        ZStack {
-            Ta33Color.cream.ignoresSafeArea()
-            switch model.app.readiness {
-            case .loading:
+        Group {
+            if let state = model.state, !state.loading {
+                DenikVariantPrehledView(state: state, onSwitch: model.toggle)
+            } else {
                 DenikLoadingView()
-            case .ready where model.app.activeRunId != nil && model.app.activeRouteId != nil:
-                DenikOnRouteView(log: model.log, routeLabel: model.routeLabel, offline: true)
-            default:
-                DenikBeforeView(onDownload: model.onDownload)
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        // Cream vyplní i pod plovoucí lištu (iOS 26), ale obsah respektuje spodní safe area
+        // lišty — poslední (cíl) uzel se pak scrolluje nad lištu a neprosvítá zpod skla.
+        .background(Ta33Color.cream.ignoresSafeArea())
         .task { await model.observe() }
-        .task { await model.observeLog() }
-        .task { await model.observeRoute() }
     }
 }

@@ -11,6 +11,9 @@ interface PreparationRepository {
     suspend fun markReady(manifestVersion: Int)
     suspend fun markError()
 
+    /** DEV Sandbox: resets preparation to NOT_STARTED and drops downloaded-asset bookkeeping. */
+    suspend fun reset()
+
     // resume bookkeeping
     suspend fun loadAssets(): List<DownloadItemProgress>
     suspend fun saveAsset(item: DownloadItemProgress, relativePath: String?)

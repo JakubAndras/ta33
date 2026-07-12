@@ -131,6 +131,37 @@ object Ta33Icons {
         lineTo(9f, 18f)
     }
 
+    val Swap: ImageVector = strokeIcon("swap") {
+        // horní šipka doprava
+        moveTo(17f, 4f)
+        lineTo(21f, 8f)
+        lineTo(17f, 12f)
+        moveTo(3f, 8f)
+        lineTo(21f, 8f)
+        // dolní šipka doleva
+        moveTo(7f, 12f)
+        lineTo(3f, 16f)
+        lineTo(7f, 20f)
+        moveTo(21f, 16f)
+        lineTo(3f, 16f)
+    }
+
+    val ArrowUpRight: ImageVector = strokeIcon("arrow-up-right") {
+        moveTo(7f, 17f)
+        lineTo(17f, 7f)
+        moveTo(8f, 7f)
+        lineTo(17f, 7f)
+        lineTo(17f, 16f)
+    }
+
+    val ArrowDownRight: ImageVector = strokeIcon("arrow-down-right") {
+        moveTo(7f, 7f)
+        lineTo(17f, 17f)
+        moveTo(17f, 8f)
+        lineTo(17f, 17f)
+        lineTo(8f, 17f)
+    }
+
     val Close: ImageVector = strokeIcon("x") {
         moveTo(6f, 6f)
         lineTo(18f, 18f)

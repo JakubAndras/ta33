@@ -7,6 +7,9 @@ import com.example.ta33.core.Ticker
 import com.example.ta33.core.TimeProvider
 import com.example.ta33.core.UuidGenerator
 import com.example.ta33.data.db.Ta33Database
+import com.example.ta33.dev.DevContentSeeder
+import com.example.ta33.dev.DevSeed
+import com.example.ta33.dev.SandboxState
 import com.example.ta33.data.location.LocationStream
 import com.example.ta33.data.location.SharedLocationStream
 import com.example.ta33.data.map.TileStoreImpl
@@ -19,6 +22,7 @@ import com.example.ta33.data.repository.ParticipantRepositoryImpl
 import com.example.ta33.data.repository.PreparationRepositoryImpl
 import com.example.ta33.data.repository.RouteRepositoryImpl
 import com.example.ta33.data.repository.StaticAppInfoRepository
+import com.example.ta33.data.repository.StaticRouteCatalogRepository
 import com.example.ta33.data.repository.RunRepositoryImpl
 import com.example.ta33.data.repository.TrackpointRepositoryImpl
 import com.example.ta33.domain.geo.BreadcrumbThrottle
@@ -34,6 +38,7 @@ import com.example.ta33.domain.repository.AppPreferencesRepository
 import com.example.ta33.domain.repository.OfflinePackageRepository
 import com.example.ta33.domain.repository.ParticipantRepository
 import com.example.ta33.domain.repository.PreparationRepository
+import com.example.ta33.domain.repository.RouteCatalogRepository
 import com.example.ta33.domain.repository.RouteRepository
 import com.example.ta33.domain.repository.RunRepository
 import com.example.ta33.domain.repository.TrackpointRepository
@@ -61,13 +66,16 @@ import com.example.ta33.domain.usecase.SelectActiveRouteUseCase
 import com.example.ta33.domain.usecase.StartRunUseCase
 import com.example.ta33.presentation.AppViewModel
 import com.example.ta33.presentation.ControlCollectionViewModel
+import com.example.ta33.presentation.DenikViewModel
 import com.example.ta33.presentation.DownloadViewModel
 import com.example.ta33.presentation.LiveLocationViewModel
 import com.example.ta33.presentation.MapViewModel
+import com.example.ta33.presentation.MapaViewModel
 import com.example.ta33.presentation.OverviewViewModel
 import com.example.ta33.presentation.RouteDetailViewModel
 import com.example.ta33.presentation.RouteListViewModel
 import com.example.ta33.presentation.RunLogViewModel
+import com.example.ta33.presentation.SandboxViewModel
 import com.example.ta33.presentation.SettingsViewModel
 import com.example.ta33.presentation.TimingViewModel
 import com.example.ta33.presentation.navigation.StartDestinationResolver
@@ -81,9 +89,14 @@ val appModule = module {
     // core
     single<TimeProvider> { SystemTimeProvider() }
     single<IdGenerator> { UuidGenerator() }
+    // DEV/TESTING seed + Sandbox (gated by DEV_SEED_ENABLED / DEBUG UI; remove before release)
+    single { SandboxState() }
+    single { DevContentSeeder(get(), get(), get()) }
+    single { DevSeed(get(), get(), get(), get(), get(), get()) }
     // repositories
     single<ParticipantRepository> { ParticipantRepositoryImpl(get(), get(), get()) }
     single<RouteRepository> { RouteRepositoryImpl(get()) }
+    single<RouteCatalogRepository> { StaticRouteCatalogRepository() } // RD-00 rich route content (mock)
     single<RunRepository> { RunRepositoryImpl(get(), get()) }
     single<AppPreferencesRepository> { AppPreferencesRepositoryImpl(get()) } // FR-03 (Ta33Database)
     // FR-11 offline package download
@@ -134,6 +147,8 @@ val appModule = module {
     factory { ObserveTimingUseCase(get(), get(), get()) }                   // RunRepo, TimeProvider, Ticker
     // viewmodel
     factory { RunLogViewModel(get()) }
+    factory { DenikViewModel(get(), get(), get()) }                               // RD-01 (observeApp, RunRepo, RouteCatalog)
+    factory { MapaViewModel(get(), get()) }                                       // RD-02 (observeApp, RouteCatalog) — schematic map
     factory { RouteListViewModel(get(), get(), get()) }
     factory { RouteDetailViewModel(get(), get(), get()) }
     factory { DownloadViewModel(get(), get(), get()) }
@@ -151,4 +166,5 @@ val appModule = module {
     factory { SetNotificationsEnabledUseCase(get()) }
     factory { OverviewViewModel(get()) }
     factory { SettingsViewModel(get(), get(), get()) }
+    factory { SandboxViewModel(get(), get(), get(), get(), get(), get(), get()) } // UI-12 DEV Sandbox
 }

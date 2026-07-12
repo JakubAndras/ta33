@@ -13,6 +13,9 @@ SELECT * FROM RunSession WHERE id = ?;
 selectActiveRun:
 SELECT * FROM RunSession WHERE finishedAtMillis IS NULL ORDER BY startedAtMillis DESC LIMIT 1;
 
+selectLatestRun:
+SELECT * FROM RunSession ORDER BY rowid DESC LIMIT 1;
+
 insertRun:
 INSERT INTO RunSession(id, routeId, participantId, startedAtMillis, finishedAtMillis, syncStatus)
 VALUES (?, ?, ?, ?, ?, ?);
@@ -22,3 +25,9 @@ UPDATE RunSession SET startedAtMillis = ? WHERE id = ?;
 
 setFinished:
 UPDATE RunSession SET finishedAtMillis = ? WHERE id = ?;
+
+clearFinished:
+UPDATE RunSession SET finishedAtMillis = NULL WHERE id = ?;
+
+deleteAllRuns:
+DELETE FROM RunSession;

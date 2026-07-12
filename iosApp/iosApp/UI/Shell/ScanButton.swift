@@ -1,15 +1,16 @@
 import SwiftUI
 
 /// Scan vstupní bod (FR-09) — prominentní kruhové tlačítko zobrazené jen při aktivním běhu.
-/// iOS-idiomatické (ne Material FAB): kruh v `Ta33Color.orange` s teplým glow (`shadow-scan-glow`),
-/// SF Symbol `qrcode.viewfinder`, ikona v `fgOnOrange`.
+/// **Používá se jen jako iOS 18 fallback FAB** (`RootView.legacyScanFab`): solid oranžový kruh
+/// vedle klasické lišty s teplým glow. Na iOS 26 scan renderuje systémová oddělená search-role
+/// kapsle (viz `RootView.baseTabView`), ne tento view. Ikona `qrcode.viewfinder`.
 struct ScanButton: View {
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
             Image(systemName: "qrcode.viewfinder")
-                .font(.system(size: 28, weight: .semibold))
+                .font(.system(size: 20, weight: .medium)) // FabBar fabIconPointSize=20, medium
                 .foregroundStyle(Ta33Color.fgOnOrange)
                 .frame(width: Ta33Spacing.x9, height: Ta33Spacing.x9)
                 .background(Ta33Color.orange, in: Circle())

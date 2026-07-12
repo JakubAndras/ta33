@@ -69,4 +69,13 @@ class RouteRepositoryImpl(
             }
         }
     }
+
+    override suspend fun clearAll() {
+        withContext(Dispatchers.Default) {
+            db.transaction {
+                cq.deleteAllControls()
+                rq.deleteAllRoutes()
+            }
+        }
+    }
 }

@@ -19,3 +19,6 @@ SELECT * FROM ControlPoint WHERE id = ?;
 upsertControl:
 INSERT OR REPLACE INTO ControlPoint(id, routeId, ordinal, name, latitude, longitude, radiusMeters)
 VALUES (?, ?, ?, ?, ?, ?, ?);
+
+deleteAllControls:
+DELETE FROM ControlPoint;

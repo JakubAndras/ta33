@@ -21,7 +21,6 @@ fun Ta33App(appViewModel: AppViewModel = koinViewModel()) {
         AppReadiness.READY -> MainShell(
             app = app,
             onScan = { /* TODO FR-09 scan flow */ },
-            onDownload = { /* TODO FR-11 preparation */ },
         )
     }
 }

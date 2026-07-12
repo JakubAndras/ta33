@@ -2,7 +2,7 @@ import Foundation
 import Shared
 
 /// Pozoruje sdílený `DownloadViewModel` (FR-11) přes SKIE `AsyncSequence` (`for await`)
-/// a vystavuje jeho `DownloadUiState` SwiftUI. Zrcadlí vzor `DenikModel`/`PrehledModel` (ui-02/ui-06).
+/// a vystavuje jeho `DownloadUiState` SwiftUI. Zrcadlí vzor `DenikModel`/`ProfilModel` (ui-02/ui-06).
 @MainActor
 final class PreparationModel: ObservableObject {
     private let vm = ViewModelProvider.shared.downloadViewModel()

@@ -72,6 +72,20 @@ class FakeRunRepository(private val ids: IdGenerator = SeqIdGenerator("run-")) :
     override suspend fun getActiveRun(): RunSession? =
         runFlow.value?.takeIf { it.finishedAtMillis == null }
 
+    override fun observeLatestRun(): Flow<RunSession?> = runFlow
+
+    override suspend fun getLatestRun(): RunSession? = runFlow.value
+
+    override suspend fun clearFinished(runId: String) {
+        val current = runFlow.value
+        if (current?.id == runId) runFlow.value = current.copy(finishedAtMillis = null)
+    }
+
+    override suspend fun clearAllRuns() {
+        runFlow.value = null
+        collectedFlow.value = emptyList()
+    }
+
     override suspend fun setStarted(runId: String, startedAtMillis: Long) {
         val current = runFlow.value
         if (current?.id == runId) runFlow.value = current.copy(startedAtMillis = startedAtMillis)
@@ -140,6 +154,11 @@ class FakeRouteRepository : RouteRepository {
     override suspend fun upsertRoute(route: Route, controls: List<ControlPoint>) {
         routes.value = routes.value.filterNot { it.id == route.id } + route.copy(controls = emptyList())
         this.controls.value = this.controls.value.filterNot { it.routeId == route.id } + controls
+    }
+
+    override suspend fun clearAll() {
+        routes.value = emptyList()
+        controls.value = emptyList()
     }
 }
 
@@ -212,6 +231,11 @@ class FakePreparationRepository(initial: PreparationState = PreparationState()) 
     }
 
     override suspend fun clearAssets() {
+        assets.clear()
+    }
+
+    override suspend fun reset() {
+        stateFlow.value = PreparationState(PreparationStatus.NOT_STARTED)
         assets.clear()
     }
 }

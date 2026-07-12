@@ -51,6 +51,13 @@ class PreparationRepositoryImpl(
         }
     }
 
+    override suspend fun reset() {
+        withContext(Dispatchers.Default) {
+            pq.upsertPreparation(PreparationStatus.NOT_STARTED.name, null, null)
+            aq.deleteAllAssets()
+        }
+    }
+
     override suspend fun loadAssets(): List<DownloadItemProgress> =
         withContext(Dispatchers.Default) {
             aq.selectAllAssets().executeAsList().map { it.toProgress() }

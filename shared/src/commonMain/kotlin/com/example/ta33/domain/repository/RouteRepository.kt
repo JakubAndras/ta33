@@ -14,4 +14,7 @@ interface RouteRepository {
 
     // Local seeding hook; the actual content source (JSON download) is FR-11.
     suspend fun upsertRoute(route: Route, controls: List<ControlPoint>)
+
+    /** DEV Sandbox: wipes all routes + control points (drives readiness to NOT_READY). */
+    suspend fun clearAll()
 }

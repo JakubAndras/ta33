@@ -19,3 +19,6 @@ ORDER BY Route.name;
 
 upsertRoute:
 INSERT OR REPLACE INTO Route(id, name, distanceKm) VALUES (?, ?, ?);
+
+deleteAllRoutes:
+DELETE FROM Route;

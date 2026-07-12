@@ -1,24 +1,18 @@
 package com.example.ta33.ui.shell
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -27,10 +21,12 @@ import com.example.ta33.ui.components.Ta33Icons
 import com.example.ta33.ui.theme.Ta33Theme
 
 /**
- * Plovoucí bílý pill bottom nav (Material-idiomatic, dle design systému):
- * Deník / Mapa / Přehled. Aktivní tab = slate-800 pill + světlý obsah,
- * neaktivní = jen ikona ve `fgMuted`. Sám si drží spodní okraj a safe-area inset;
- * volající zarovná horizontálně (BottomCenter).
+ * Android-native spodní lišta: standardní Material 3 [NavigationBar] (docked, edge-to-edge),
+ * Deník / Mapa / Profil. Vizuál se drží platformy (Material), brand řeší jen tint výběru:
+ * aktivní ikona/štítek = brand orange, pilulka indikátoru = orange tint (`primaryContainer`),
+ * neaktivní = `fgMuted`. Safe-area inset (gesture bar) si `NavigationBar` řeší sám.
+ *
+ * (iOS strana používá nativní `TabView` s Liquid Glass — sdílíme model, ne vzhled.)
  */
 @Composable
 fun Ta33BottomNav(
@@ -38,57 +34,37 @@ fun Ta33BottomNav(
     onSelect: (TopLevelDestination) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Surface(
-        modifier = modifier
-            .navigationBarsPadding()
-            .padding(bottom = Ta33Theme.spacing.x4)
-            .shadow(Ta33Theme.spacing.x2, Ta33Theme.radius.pill),
-        color = MaterialTheme.colorScheme.surface,
-        shape = Ta33Theme.radius.pill,
+    NavigationBar(
+        modifier = modifier,
+        containerColor = MaterialTheme.colorScheme.surface,
     ) {
-        Row(
-            modifier = Modifier.padding(Ta33Theme.spacing.x2),
-            horizontalArrangement = Arrangement.spacedBy(Ta33Theme.spacing.x1),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            NavItem(TopLevelDestination.DENIK, Ta33Icons.BookText, "Deník", selected, onSelect)
-            NavItem(TopLevelDestination.MAPA, Ta33Icons.Map, "Mapa", selected, onSelect)
-            NavItem(TopLevelDestination.PREHLED, Ta33Icons.User, "Přehled", selected, onSelect)
-        }
+        NavItem(TopLevelDestination.DENIK, Ta33Icons.BookText, "Deník", selected, onSelect)
+        NavItem(TopLevelDestination.MAPA, Ta33Icons.Map, "Mapa", selected, onSelect)
+        NavItem(TopLevelDestination.PREHLED, Ta33Icons.User, "Profil", selected, onSelect)
     }
 }
 
 @Composable
-private fun NavItem(
+private fun RowScope.NavItem(
     destination: TopLevelDestination,
     icon: ImageVector,
     label: String,
     selected: TopLevelDestination,
     onSelect: (TopLevelDestination) -> Unit,
 ) {
-    val active = destination == selected
-    Row(
-        modifier = Modifier
-            .clip(Ta33Theme.radius.pill)
-            .clickable { onSelect(destination) }
-            .background(if (active) Ta33Theme.colors.identityBg else Color.Transparent)
-            .padding(horizontal = Ta33Theme.spacing.x4, vertical = Ta33Theme.spacing.x3),
-        horizontalArrangement = Arrangement.spacedBy(Ta33Theme.spacing.x2),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = label,
-            tint = if (active) Ta33Theme.colors.fgOnDark else Ta33Theme.colors.fgMuted,
-        )
-        if (active) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelMedium,
-                color = Ta33Theme.colors.fgOnDark,
-            )
-        }
-    }
+    NavigationBarItem(
+        selected = destination == selected,
+        onClick = { onSelect(destination) },
+        icon = { Icon(imageVector = icon, contentDescription = label) },
+        label = { Text(text = label, style = MaterialTheme.typography.labelMedium) },
+        colors = NavigationBarItemDefaults.colors(
+            selectedIconColor = MaterialTheme.colorScheme.primary,
+            selectedTextColor = MaterialTheme.colorScheme.primary,
+            indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+            unselectedIconColor = Ta33Theme.colors.fgMuted,
+            unselectedTextColor = Ta33Theme.colors.fgMuted,
+        ),
+    )
 }
 
 /** Kruhový orange scan FAB s glow — vstupní bod pro QR sken (FR-09), jen při aktivním běhu. */

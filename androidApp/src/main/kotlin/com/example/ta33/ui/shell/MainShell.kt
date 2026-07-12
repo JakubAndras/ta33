@@ -25,7 +25,8 @@ import com.example.ta33.presentation.TimingViewModel
 import com.example.ta33.presentation.navigation.AppUiState
 import com.example.ta33.presentation.navigation.TopLevelDestination
 import com.example.ta33.ui.denik.DenikScreen
-import com.example.ta33.ui.prehled.PrehledScreen
+import com.example.ta33.ui.map.MapaScreen
+import com.example.ta33.ui.profil.ProfilScreen
 import com.example.ta33.ui.scan.CollectionOfferSheet
 import com.example.ta33.ui.scan.ScanModal
 import com.example.ta33.ui.scan.SplneniScreen
@@ -36,15 +37,16 @@ import org.koin.compose.viewmodel.koinViewModel
 
 /**
  * Tabbed shell (READY stav): tři taby přepínané stavově (bez back-stacku, nav contract).
- * Bottom nav je plovoucí pill nad obsahem; obsah dostane spodní padding, aby ho pill nepřekrýval.
- * Scan FAB se ukáže jen při aktivním běhu (`activeRunId != null`) a otevře [ScanModal].
+ * Bottom nav je docked Material [NavigationBar] ve `Scaffold.bottomBar`; obsah dostane
+ * spodní inset přes `innerPadding`, takže lištu nepřekrývá.
+ * Scan FAB se ukáže jen při aktivním běhu (`activeRunId != null`) a otevře [ScanModal];
+ * `Scaffold` ho posadí nad lištu (standardní M3 rozvržení).
  * Nad taby žijí i nabídka sběru kontroly (FR-08) a zelená obrazovka Splnění.
  */
 @Composable
 fun MainShell(
     app: AppUiState,
     onScan: () -> Unit,
-    onDownload: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var tab by rememberSaveable { mutableStateOf(TopLevelDestination.DENIK) }
@@ -59,32 +61,21 @@ fun MainShell(
             modifier = Modifier.fillMaxSize(),
             containerColor = MaterialTheme.colorScheme.background,
             contentWindowInsets = WindowInsets(0, 0, 0, 0),
+            bottomBar = {
+                Ta33BottomNav(selected = tab, onSelect = { tab = it })
+            },
             floatingActionButton = {
                 if (runId != null) {
-                    ScanFab(
-                        onClick = { onScan(); showScan = true },
-                        modifier = Modifier.navigationBarsPadding(),
-                    )
+                    ScanFab(onClick = { onScan(); showScan = true })
                 }
             },
         ) { innerPadding ->
             Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(bottom = Ta33Theme.spacing.x10 + Ta33Theme.spacing.x4),
-                ) {
-                    when (tab) {
-                        TopLevelDestination.DENIK -> DenikScreen(onDownload = onDownload)
-                        TopLevelDestination.MAPA -> StubScreen(title = "Mapa")
-                        TopLevelDestination.PREHLED -> PrehledScreen()
-                    }
+                when (tab) {
+                    TopLevelDestination.DENIK -> DenikScreen()
+                    TopLevelDestination.MAPA -> MapaScreen()
+                    TopLevelDestination.PREHLED -> ProfilScreen()
                 }
-                Ta33BottomNav(
-                    selected = tab,
-                    onSelect = { tab = it },
-                    modifier = Modifier.align(Alignment.BottomCenter),
-                )
             }
         }
 

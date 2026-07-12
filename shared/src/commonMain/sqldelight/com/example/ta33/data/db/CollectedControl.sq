@@ -17,3 +17,6 @@ SELECT COUNT(*) FROM CollectedControl WHERE runSessionId = ?;
 insertCollected:
 INSERT OR IGNORE INTO CollectedControl(id, runSessionId, controlId, collectedAtMillis, syncStatus)
 VALUES (?, ?, ?, ?, ?);
+
+deleteAllCollected:
+DELETE FROM CollectedControl;
